@@ -1,4 +1,4 @@
-package router
+package grester
 
 import (
 	"net/http"
@@ -10,10 +10,10 @@ type (
 	Next func(err error)
 
 	HTTPHandler interface {
-		HTTPHandle(req *http.Request, res http.ResponseWriter, next Next)
+		HTTPHandle(res http.ResponseWriter, req *http.Request, next Next)
 	}
 
-	HTTPHandleFunc func(req *http.Request, res http.ResponseWriter, next Next)
+	HTTPHandleFunc func(res http.ResponseWriter, req *http.Request, next Next)
 
 	Router struct {
 		stack        []*Layer
@@ -23,8 +23,8 @@ type (
 
 
 // implement HTTPHandle, and call itself
-func (h HTTPHandleFunc) HTTPHandle(req *http.Request, res http.ResponseWriter, next Next) {
-	h(req, res, next)
+func (h HTTPHandleFunc) HTTPHandle(res http.ResponseWriter, req *http.Request, next Next) {
+	h(res, req, next)
 }
 
 func NewRouter() *Router {
@@ -77,8 +77,6 @@ func (this *Router) addHandler(method string, path string, handlers ...HTTPHandl
 		route.PUT(handlers...);
 	case "DELETE":
 		route.DELETE(handlers...);
-	case "OPTIONS":
-		route.OPTIONS(handlers...);
 	case "HEAD":
 		route.HEAD(handlers...);
 	// ignore others
@@ -100,10 +98,6 @@ func (this *Router) PUT(path string, handlers ...HTTPHandler) *Router {
 
 func (this *Router) DELETE(path string, handlers ...HTTPHandler) *Router {
 	return this.addHandler("DELETE", path, handlers...)
-}
-
-func (this *Router) OPTIONS(path string, handlers ...HTTPHandler) *Router {
-	return this.addHandler("OPTIONS", path, handlers...)
 }
 
 func (this *Router) HEAD(path string, handlers ...HTTPHandler) *Router {
@@ -138,13 +132,6 @@ func (this *Router) DELETEFunc(path string, handlers ...HTTPHandleFunc) *Router 
 	return this
 }
 
-func (this *Router) OPTIONSFunc(path string, handlers ...HTTPHandleFunc) *Router {
-	for _, handler := range handlers {
-		this.OPTIONS(path, handler);
-	}
-	return this
-}
-
 func (this *Router) HEADFunc(path string, handlers ...HTTPHandleFunc) *Router {
 	for _, handler := range handlers {
 		this.HEAD(path, handler);
@@ -164,6 +151,7 @@ func (this *Router) route(req *http.Request, res http.ResponseWriter, done Next)
 
 	var allowOptionsMethods = make([]string, 0, 5)
 	if req.Method == "OPTIONS" {
+		// reply OPTIONS request automatically
 		old := done
 		done = func(err error) {
 			if err != nil || len(allowOptionsMethods) == 0 {
@@ -232,13 +220,13 @@ func (this *Router) route(req *http.Request, res http.ResponseWriter, done Next)
 		}
 		layer.registerParamsAsQuery(path, req)
 
-		layer.handleRequest(req, res, next)
+		layer.handleRequest(res, req, next)
 	}
 
 	next(nil)
 }
 
-func (this *Router) HTTPHandle(req *http.Request, res http.ResponseWriter, next Next) {
+func (this *Router) HTTPHandle(res http.ResponseWriter, req *http.Request, next Next) {
 	this.route(req, res, next)
 }
 

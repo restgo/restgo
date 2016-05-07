@@ -1,4 +1,4 @@
-package router
+package grester
 
 import (
 	"strings"
@@ -48,7 +48,7 @@ func (this *Route) optionsMethods() []string {
 	return options
 }
 
-func (this *Route) dispatch(req *http.Request, res http.ResponseWriter, done Next) {
+func (this *Route) dispatch(res http.ResponseWriter, req *http.Request, done Next) {
 	var idx = 0
 	if len(this.stack) == 0 {
 		done(nil)
@@ -81,7 +81,7 @@ func (this *Route) dispatch(req *http.Request, res http.ResponseWriter, done Nex
 		if err != nil {
 			done(err)
 		} else {
-			layer.handleRequest(req, res, next)
+			layer.handleRequest(res, req, next)
 		}
 	}
 
@@ -89,8 +89,8 @@ func (this *Route) dispatch(req *http.Request, res http.ResponseWriter, done Nex
 }
 
 // implement as HTTPServe interface
-func (this *Route) HTTPHandle(req *http.Request, res http.ResponseWriter, done Next) {
-	this.dispatch(req, res, done);
+func (this *Route) HTTPHandle(res http.ResponseWriter, req *http.Request, done Next) {
+	this.dispatch(res, req, done);
 }
 
 func (this *Route) All(handler HTTPHandler) *Route {
@@ -128,10 +128,6 @@ func (this *Route) PUT(handlers ...HTTPHandler) *Route {
 
 func (this *Route) DELETE(handlers ...HTTPHandler) *Route {
 	return this.addHandler("delete", handlers...)
-}
-
-func (this *Route) OPTIONS(handlers ...HTTPHandler) *Route {
-	return this.addHandler("options", handlers...)
 }
 
 func (this *Route) HEAD(handlers ...HTTPHandler) *Route {

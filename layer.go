@@ -1,8 +1,7 @@
-package router
+package grester
 
 import (
 	"regexp"
-	"fmt"
 	"net/http"
 )
 
@@ -24,8 +23,8 @@ func newLayer(path string, handle HTTPHandler) *Layer {
 	return layer
 }
 
-func (this *Layer) handleRequest (req *http.Request, res http.ResponseWriter, next Next) {
-	this.handle.HTTPHandle(req, res, next)
+func (this *Layer) handleRequest (res http.ResponseWriter, req *http.Request, next Next) {
+	this.handle.HTTPHandle(res, req, next)
 }
 
 
@@ -47,7 +46,6 @@ func (this *Layer) registerParamsAsQuery(path string, req *http.Request){
 
 	m := this.regexp.FindStringSubmatch(path)
 	if len(m) > 1 {
-		fmt.Println(m[1:])
 		for i, val := range m[1:] {
 			name := this.params[i]
 			if req.URL.RawQuery != "" {
@@ -56,7 +54,6 @@ func (this *Layer) registerParamsAsQuery(path string, req *http.Request){
 				req.URL.RawQuery += name + "=" + val
 			}
 		}
-		fmt.Println(req.URL.RawQuery)
 	}
 }
 
