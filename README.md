@@ -48,32 +48,25 @@ check example `exmaple/app.go` or [demo app](https://github.com/Nekle/grest-demo
 ```go
 
 	root := grest.NewRouter()
-	root.UseFunc("/", func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
+	root.UseFunc("/", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		fmt.Println("Filter all")
 		next(nil)
 	})
 
-	root.GETFunc("/about", func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
-		fmt.Println("GET about")
+	root.GETFunc("/about", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		grest.ServeTEXT(rw, "GET about", 0)
 	})
 
-	root.Route("/archive").GETFunc(func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
-		fmt.Println("GET archive")
+	root.Route("/archive").GETFunc(func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		grest.ServeTEXT(rw, "GET archive", 0)
-	}).POSTFunc(func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
-		fmt.Println("POST archive")
+	}).POSTFunc(func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		grest.ServeTEXT(rw, "POST archive", 0)
 	})
 
-	root.AllFunc("/test", func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
-		fmt.Println("All test: " + req.Method)
+	root.AllFunc("/test", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		grest.ServeTEXT(rw, "All test: " + req.Method, 0)
 	})
 
-	fmt.Println("listening on 8080")
-	if err := http.ListenAndServe(":8080", root); err != nil {
-		log.Fatal("Something wrong")
-	}
+	http.ListenAndServe(":8080", root)
 ```
 

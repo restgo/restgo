@@ -10,26 +10,26 @@ import (
 func main() {
 	blog := grest.NewRouter()
 
-	blog.GETFunc("/articles/:id", func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
+	blog.GETFunc("/articles/:id", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		params := req.URL.Query()
 		id := params["id"][0]
 		fmt.Println("GET article " +id)
 		grest.ServeTEXT(rw, "GET article " +id, 0)
 	});
 
-	blog.POSTFunc("/articles", func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
+	blog.POSTFunc("/articles", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		fmt.Println( "POST article ")
 		grest.ServeTEXT(rw, "POST article ", 0)
 	});
 
-	blog.PUTFunc("/articles/:id", func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
+	blog.PUTFunc("/articles/:id", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		params := req.URL.Query()
 		id := params["id"][0]
 		fmt.Println("PUT article " +id)
 		grest.ServeTEXT(rw, "PUT article " +id, 0)
 	});
 
-	blog.DELETEFunc("/articles/:id", func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
+	blog.DELETEFunc("/articles/:id", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		params := req.URL.Query()
 		id := params["id"][0]
 		fmt.Println("DELETE article " +id)
@@ -38,26 +38,26 @@ func main() {
 
 
 	root := grest.NewRouter()
-	root.UseFunc("/", func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
+	root.UseFunc("/", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		fmt.Println("Filter all")
 		next(nil)
 	})
 
 	root.Use("/blog", blog)
-	root.GETFunc("/about", func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
+	root.GETFunc("/about", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		fmt.Println("GET about")
 		grest.ServeTEXT(rw, "GET about", 0)
 	})
 
-	root.Route("/archive").GETFunc(func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
+	root.Route("/archive").GETFunc(func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		fmt.Println("GET archive")
 		grest.ServeTEXT(rw, "GET archive", 0)
-	}).POSTFunc(func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
+	}).POSTFunc(func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		fmt.Println("POST archive")
 		grest.ServeTEXT(rw, "POST archive", 0)
 	})
 
-	root.AllFunc("/test", func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
+	root.AllFunc("/test", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
 		fmt.Println("All test: " + req.Method)
 		grest.ServeTEXT(rw, "All test: " + req.Method, 0)
 	})
