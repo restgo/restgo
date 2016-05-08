@@ -1,9 +1,9 @@
 
 Router for api server of golang, inspired by expressjs 
 
-## USAGE
+## Usage
 
-```
+```go
 blog := grest.NewRouter()
 
 	blog.GETFunc("/articles/:id", func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
