@@ -16,7 +16,7 @@ type (
 	HTTPHandleFunc func(res http.ResponseWriter, req *http.Request, next Next)
 
 	Router struct {
-		stack        []*Layer
+		stack        []*layer
 		routerPrefix string // prefix path, trimmed off it when route
 	}
 )
@@ -29,7 +29,7 @@ func (h HTTPHandleFunc) HTTPHandle(res http.ResponseWriter, req *http.Request, n
 
 func NewRouter() *Router {
 	router := &Router{
-		stack: make([]*Layer, 0),
+		stack: make([]*layer, 0),
 	}
 
 	return router
@@ -46,9 +46,9 @@ func (this *Router) Use(path string, handlers ...HTTPHandler) *Router {
 			r.routerPrefix = this.routerPrefix + path
 		}
 
-		layer := newLayer(path, handler)
-		layer.route = nil
-		this.stack = append(this.stack, layer)
+		l := newLayer(path, handler)
+		l.route = nil
+		this.stack = append(this.stack, l)
 	}
 
 	return this
@@ -65,11 +65,11 @@ func (this *Router) UseFunc(path string, handlers ...HTTPHandleFunc) *Router {
 
 func (this *Router) Route(path string) *Route {
 	route := newRoute(path)
-	layer := newLayer(path, route) // route.HTTPHandler
+	l := newLayer(path, route) // route.HTTPHandler
 
-	layer.route = route
+	l.route = route
 
-	this.stack = append(this.stack, layer)
+	this.stack = append(this.stack, l)
 
 	return route
 }
@@ -149,8 +149,8 @@ func (this *Router) HEADFunc(path string, handlers ...HTTPHandleFunc) *Router {
 }
 
 
-func (this *Router) matchLayer(layer *Layer, path string) (bool, error) {
-	match := layer.match(path)
+func (this *Router) matchLayer(l *layer, path string) (bool, error) {
+	match := l.match(path)
 	return match, nil
 }
 
@@ -190,16 +190,16 @@ func (this *Router) route(req *http.Request, res http.ResponseWriter, done Next)
 			return
 		}
 
-		// find next matching layer
+		// find next matching l
 		var match = false
-		var layer *Layer
+		var l *layer
 		var route *Route
 
 		for ; match != true && idx < len(this.stack); {
-			layer = this.stack[idx]
+			l = this.stack[idx]
 			idx ++
-			match, err = this.matchLayer(layer, path);
-			route = layer.route
+			match, err = this.matchLayer(l, path);
+			route = l.route
 
 			if match != true || route == nil {
 				continue
@@ -227,9 +227,9 @@ func (this *Router) route(req *http.Request, res http.ResponseWriter, done Next)
 			done(err)
 			return
 		}
-		layer.registerParamsAsQuery(path, req)
+		l.registerParamsAsQuery(path, req)
 
-		layer.handleRequest(res, req, next)
+		l.handleRequest(res, req, next)
 	}
 
 	next(nil)

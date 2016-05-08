@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-type Layer struct {
+type layer struct {
 	regexp *regexp.Regexp
 	path string
 	method string
@@ -14,21 +14,21 @@ type Layer struct {
 	route *Route
 }
 
-func newLayer(path string, handle HTTPHandler) *Layer {
-	layer := &Layer{
+func newLayer(path string, handle HTTPHandler) *layer {
+	l := &layer{
 		handle: handle,
 	}
-	layer.regexp, layer.params= Path2Regexp(path)
+	l.regexp, l.params= Path2Regexp(path)
 
-	return layer
+	return l
 }
 
-func (this *Layer) handleRequest (res http.ResponseWriter, req *http.Request, next Next) {
+func (this *layer) handleRequest (res http.ResponseWriter, req *http.Request, next Next) {
 	this.handle.HTTPHandle(res, req, next)
 }
 
 
-func (this *Layer) match (path string) bool{
+func (this *layer) match (path string) bool{
 	if path == "" {
 		return false
 	}
@@ -42,7 +42,7 @@ func (this *Layer) match (path string) bool{
 	return true
 }
 
-func (this *Layer) registerParamsAsQuery(path string, req *http.Request){
+func (this *layer) registerParamsAsQuery(path string, req *http.Request){
 
 	m := this.regexp.FindStringSubmatch(path)
 	if len(m) > 1 {

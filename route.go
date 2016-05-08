@@ -7,7 +7,7 @@ import (
 
 type Route struct {
 	path       string
-	stack      []*Layer
+	stack      []*layer
 	methods    map[string]bool
 	allMethods bool
 }
@@ -15,7 +15,7 @@ type Route struct {
 func newRoute(path string) *Route {
 	route := &Route{
 		path: path,
-		stack: make([]*Layer, 0),
+		stack: make([]*layer, 0),
 		methods:make(map[string]bool),
 	}
 
@@ -62,18 +62,18 @@ func (this *Route) dispatch(res http.ResponseWriter, req *http.Request, done Nex
 	var next Next
 
 	next = func(err error) {
-		var layer *Layer
+		var l *layer
 		if idx < len(this.stack) {
-			layer = this.stack[idx]
+			l = this.stack[idx]
 			idx++
 		}
 
-		if layer == nil {
+		if l == nil {
 			done(err)
 			return
 		}
 
-		if layer.method != method {
+		if l.method != method {
 			next(nil)
 			return
 		}
@@ -81,7 +81,7 @@ func (this *Route) dispatch(res http.ResponseWriter, req *http.Request, done Nex
 		if err != nil {
 			done(err)
 		} else {
-			layer.handleRequest(res, req, next)
+			l.handleRequest(res, req, next)
 		}
 	}
 
@@ -94,21 +94,21 @@ func (this *Route) HTTPHandle(res http.ResponseWriter, req *http.Request, done N
 }
 
 func (this *Route) All(handler HTTPHandler) *Route {
-	var layer = newLayer("/", handler)
-	layer.method = ""
+	var l = newLayer("/", handler)
+	l.method = ""
 
 	this.allMethods = true
-	this.stack = append(this.stack, layer)
+	this.stack = append(this.stack, l)
 
 	return this
 }
 
 func (this *Route) addHandler(method string, handlers ...HTTPHandler) *Route {
 	for _, handler := range handlers {
-		var layer = newLayer("/", handler)
-		layer.method = method
+		var l = newLayer("/", handler)
+		l.method = method
 		this.methods[method] = true
-		this.stack = append(this.stack, layer)
+		this.stack = append(this.stack, l)
 	}
 
 	return this
