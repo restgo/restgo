@@ -11,7 +11,7 @@ go get github.com/Nekle/grest
 
 ## Session
 
-You can use [gorilla/sessions](https://github.com/gorilla/sessions) for you sessions, there are many [Session Store](https://github.com/gorilla/sessions#store-implementations) have been implemented for it.
+You can use [gorilla/sessions](https://github.com/gorilla/sessions) for your sessions, there are many [Session Store](https://github.com/gorilla/sessions#store-implementations) have been implemented for it.
  
 ```go
  
