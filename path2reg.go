@@ -18,7 +18,6 @@ func Path2Regexp(path string) (*regexp.Regexp, map[int]string){
 		}
 	}
 
-	path = strings.Join(parts, "/")
-
+	path = strings.Join(parts, "/") + "$"
 	return regexp.MustCompile(path), params
 }
