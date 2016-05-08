@@ -2,25 +2,45 @@ package grest
 
 import (
 	"regexp"
-	"strings"
+	"fmt"
 )
 
-func Path2Regexp(path string, end bool) (*regexp.Regexp, map[int]string){
-	parts := strings.Split(path, "/")
-	params := make(map[int]string)
+// refer to https://github.com/pilu/traffic/blob/master/utils.go
+func path2Regexp(path string, end bool) (*regexp.Regexp, bool) {
+	var re       *regexp.Regexp
+	var isStatic bool
 
-	var j = 0
-	for i, part := range parts {
-		if strings.HasPrefix(part, ":") {
-			params[j] = strings.TrimPrefix(part, ":")
-			parts[i] = "([^/]+)"
-			j++
-		}
+	regexpString := path
+
+	isStaticRegexp := regexp.MustCompile(`[\(\)\?\<\>:]`)
+	if !isStaticRegexp.MatchString(path) {
+		isStatic = true
 	}
 
-	path = strings.Join(parts, "/")
+	// Dots
+	re = regexp.MustCompile(`([^\\])\.`)
+	regexpString = re.ReplaceAllStringFunc(regexpString, func(m string) string {
+		return fmt.Sprintf(`%s\.`, string(m[0]))
+	})
+
+	// Wildcard names
+	re = regexp.MustCompile(`:[^/#?()\.\\]+\*`)
+	regexpString = re.ReplaceAllStringFunc(regexpString, func(m string) string {
+		return fmt.Sprintf("(?P<%s>.+)", m[1:len(m) - 1])
+	})
+
+	re = regexp.MustCompile(`:[^/#?()\.\\]+`)
+	regexpString = re.ReplaceAllStringFunc(regexpString, func(m string) string {
+		return fmt.Sprintf(`(?P<%s>[^/#?]+)`, m[1:len(m)])
+	})
+
+
+	var str string
 	if (end) {
-		path += "$"
+		str = fmt.Sprintf(`\A%s\z`, regexpString)
+	} else {
+		str = fmt.Sprintf(`\A%s`, regexpString)
 	}
-	return regexp.MustCompile(path), params
+
+	return regexp.MustCompile(str), isStatic
 }

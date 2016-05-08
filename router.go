@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 	"encoding/json"
+	"net/url"
 )
 
 type (
@@ -177,9 +178,9 @@ func (this *Router) HEADFunc(path string, handlers ...HTTPHandleFunc) *Router {
 }
 
 
-func (this *Router) matchLayer(l *layer, path string) (bool, error) {
-	match := l.match(path)
-	return match, nil
+func (this *Router) matchLayer(l *layer, path string) (url.Values, bool) {
+	urlParams, match := l.match(path)
+	return urlParams, match
 }
 
 func (this *Router) route(req *http.Request, res http.ResponseWriter, done Next) {
@@ -218,23 +219,19 @@ func (this *Router) route(req *http.Request, res http.ResponseWriter, done Next)
 			return
 		}
 
-		// find next matching l
+		// find next matching layer
 		var match = false
 		var l *layer
 		var route *Route
+		var urlParams url.Values
 
 		for ; match != true && idx < len(this.stack); {
 			l = this.stack[idx]
 			idx ++
-			match, err = this.matchLayer(l, path);
+			urlParams, match = this.matchLayer(l, path);
 			route = l.route
 
 			if match != true || route == nil {
-				continue
-			}
-
-			if err != nil {
-				match = false
 				continue
 			}
 			method := req.Method
@@ -255,7 +252,7 @@ func (this *Router) route(req *http.Request, res http.ResponseWriter, done Next)
 			done(err)
 			return
 		}
-		l.registerParamsAsQuery(path, req)
+		l.registerParamsAsQuery(req, urlParams)
 
 		l.handleRequest(res, req, next)
 	}
