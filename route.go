@@ -73,7 +73,7 @@ func (this *Route) dispatch(res http.ResponseWriter, req *http.Request, done Nex
 			return
 		}
 
-		if l.method != method {
+		if l.method != "" && l.method != method {
 			next(nil)
 			return
 		}
@@ -93,12 +93,26 @@ func (this *Route) HTTPHandle(res http.ResponseWriter, req *http.Request, done N
 	this.dispatch(res, req, done);
 }
 
-func (this *Route) All(handler HTTPHandler) *Route {
-	var l = newLayer("/", handler)
-	l.method = ""
-
+func (this *Route) All(handlers ...HTTPHandler) *Route {
 	this.allMethods = true
-	this.stack = append(this.stack, l)
+
+	for _, handler := range handlers {
+		var l = newLayer("/", handler)
+		l.method = ""
+		this.stack = append(this.stack, l)
+	}
+
+	return this
+}
+
+func (this *Route) AllFunc(handlers ...HTTPHandleFunc) *Route {
+	this.allMethods = true
+
+	for _, handler := range handlers {
+		var l = newLayer("/", handler)
+		l.method = ""
+		this.stack = append(this.stack, l)
+	}
 
 	return this
 }

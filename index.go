@@ -74,6 +74,19 @@ func (this *Router) Route(path string) *Route {
 	return route
 }
 
+func (this *Router)All(path string, handlers ...HTTPHandler) *Router{
+	this.Route(path).All(handlers...)
+
+	return this
+}
+
+func (this *Router)AllFunc(path string, handlers ...HTTPHandleFunc) *Router{
+	this.Route(path).AllFunc(handlers...)
+
+	return this
+}
+
+
 func (this *Router) addHandler(method string, path string, handlers ...HTTPHandler) *Router {
 	route := this.Route(path)
 
