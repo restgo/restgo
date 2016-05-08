@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func Path2Regexp(path string) (*regexp.Regexp, map[int]string){
+func Path2Regexp(path string, end bool) (*regexp.Regexp, map[int]string){
 	parts := strings.Split(path, "/")
 	params := make(map[int]string)
 
@@ -18,6 +18,9 @@ func Path2Regexp(path string) (*regexp.Regexp, map[int]string){
 		}
 	}
 
-	path = strings.Join(parts, "/") + "$"
+	path = strings.Join(parts, "/")
+	if (end) {
+		path += "$"
+	}
 	return regexp.MustCompile(path), params
 }

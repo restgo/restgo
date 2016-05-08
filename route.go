@@ -97,7 +97,7 @@ func (this *Route) All(handlers ...HTTPHandler) *Route {
 	this.allMethods = true
 
 	for _, handler := range handlers {
-		var l = newLayer("/", handler)
+		var l = newLayer("/", handler, true)
 		l.method = ""
 		this.stack = append(this.stack, l)
 	}
@@ -109,7 +109,7 @@ func (this *Route) AllFunc(handlers ...HTTPHandleFunc) *Route {
 	this.allMethods = true
 
 	for _, handler := range handlers {
-		var l = newLayer("/", handler)
+		var l = newLayer("/", handler, true)
 		l.method = ""
 		this.stack = append(this.stack, l)
 	}
@@ -119,7 +119,7 @@ func (this *Route) AllFunc(handlers ...HTTPHandleFunc) *Route {
 
 func (this *Route) addHandler(method string, handlers ...HTTPHandler) *Route {
 	for _, handler := range handlers {
-		var l = newLayer("/", handler)
+		var l = newLayer("/", handler, true)
 		l.method = method
 		this.methods[method] = true
 		this.stack = append(this.stack, l)

@@ -14,11 +14,11 @@ type layer struct {
 	route *Route
 }
 
-func newLayer(path string, handle HTTPHandler) *layer {
+func newLayer(path string, handle HTTPHandler, end bool) *layer {
 	l := &layer{
 		handle: handle,
 	}
-	l.regexp, l.params= Path2Regexp(path)
+	l.regexp, l.params= Path2Regexp(path, end)
 
 	return l
 }

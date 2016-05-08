@@ -46,7 +46,7 @@ func (this *Router) Use(path string, handlers ...HTTPHandler) *Router {
 			r.routerPrefix = this.routerPrefix + path
 		}
 
-		l := newLayer(path, handler)
+		l := newLayer(path, handler, false)
 		l.route = nil
 		this.stack = append(this.stack, l)
 	}
@@ -65,7 +65,7 @@ func (this *Router) UseFunc(path string, handlers ...HTTPHandleFunc) *Router {
 
 func (this *Router) Route(path string) *Route {
 	route := newRoute(path)
-	l := newLayer(path, route) // route.HTTPHandler
+	l := newLayer(path, route, true) // route.HTTPHandler
 
 	l.route = route
 
