@@ -5,6 +5,12 @@ Router for api server of golang, inspired by expressjs
 
 ## Usage
 
+```shell
+go get github.com/Nekle/grest
+```
+
+check example `exmaple/app.go`
+
 ```go
 blog := grest.NewRouter()
 
