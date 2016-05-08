@@ -1,4 +1,4 @@
-package grester
+package grest
 
 import (
 	"strings"
@@ -88,11 +88,12 @@ func (this *Route) dispatch(res http.ResponseWriter, req *http.Request, done Nex
 	next(nil)
 }
 
-// implement as HTTPServe interface
+// implement HTTPHandle interface, so you can use it as a handler
 func (this *Route) HTTPHandle(res http.ResponseWriter, req *http.Request, done Next) {
 	this.dispatch(res, req, done);
 }
 
+// all types requests will go into registered handler
 func (this *Route) All(handlers ...HTTPHandler) *Route {
 	this.allMethods = true
 
@@ -105,6 +106,7 @@ func (this *Route) All(handlers ...HTTPHandler) *Route {
 	return this
 }
 
+// all types requests will go into registered handler function
 func (this *Route) AllFunc(handlers ...HTTPHandleFunc) *Route {
 	this.allMethods = true
 
@@ -128,22 +130,27 @@ func (this *Route) addHandler(method string, handlers ...HTTPHandler) *Route {
 	return this
 }
 
+// register handlers for `GET` request
 func (this *Route) GET(handlers ...HTTPHandler) *Route {
 	return this.addHandler("get", handlers...)
 }
 
+// register handlers for `POST` request
 func (this *Route) POST(handlers ...HTTPHandler) *Route {
 	return this.addHandler("post", handlers...)
 }
 
+// register handlers for `PUT` request
 func (this *Route) PUT(handlers ...HTTPHandler) *Route {
 	return this.addHandler("put", handlers...)
 }
 
+// register handlers for `DELETE` request
 func (this *Route) DELETE(handlers ...HTTPHandler) *Route {
 	return this.addHandler("delete", handlers...)
 }
 
+// register handlers for `HEAD` request
 func (this *Route) HEAD(handlers ...HTTPHandler) *Route {
 	return this.addHandler("options", handlers...)
 }

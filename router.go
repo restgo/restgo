@@ -1,4 +1,4 @@
-package grester
+package grest
 
 import (
 	"net/http"
@@ -9,6 +9,7 @@ import (
 type (
 	Next func(err error)
 
+	// implement this interface to handle http request
 	HTTPHandler interface {
 		HTTPHandle(res http.ResponseWriter, req *http.Request, next Next)
 	}
@@ -21,12 +22,12 @@ type (
 	}
 )
 
-
 // implement HTTPHandle, and call itself
 func (h HTTPHandleFunc) HTTPHandle(res http.ResponseWriter, req *http.Request, next Next) {
 	h(res, req, next)
 }
 
+// Create one new Router
 func NewRouter() *Router {
 	router := &Router{
 		stack: make([]*layer, 0),
@@ -35,6 +36,7 @@ func NewRouter() *Router {
 	return router
 }
 
+// set handlers for `path`, default is `/`. you can use it as filters
 func (this *Router) Use(path string, handlers ...HTTPHandler) *Router {
 	if path == "" {
 		path = "/" // default to root path
@@ -54,6 +56,7 @@ func (this *Router) Use(path string, handlers ...HTTPHandler) *Router {
 	return this
 }
 
+// set handler funcitons for `path`, default is `/`. you can use it as filters
 func (this *Router) UseFunc(path string, handlers ...HTTPHandleFunc) *Router {
 
 	for _, handler := range handlers {
@@ -63,6 +66,7 @@ func (this *Router) UseFunc(path string, handlers ...HTTPHandleFunc) *Router {
 	return this
 }
 
+// create a sub-route
 func (this *Router) Route(path string) *Route {
 	route := newRoute(path)
 	l := newLayer(path, route, true) // route.HTTPHandler
@@ -74,18 +78,19 @@ func (this *Router) Route(path string) *Route {
 	return route
 }
 
+// set handlers for all types requests
 func (this *Router)All(path string, handlers ...HTTPHandler) *Router{
 	this.Route(path).All(handlers...)
 
 	return this
 }
 
+// set handlers functions for all types requests
 func (this *Router)AllFunc(path string, handlers ...HTTPHandleFunc) *Router{
 	this.Route(path).AllFunc(handlers...)
 
 	return this
 }
-
 
 func (this *Router) addHandler(method string, path string, handlers ...HTTPHandler) *Router {
 	route := this.Route(path)
@@ -106,26 +111,32 @@ func (this *Router) addHandler(method string, path string, handlers ...HTTPHandl
 	return this
 }
 
+// set handlers for `GET` request
 func (this *Router) GET(path string, handlers ...HTTPHandler) *Router {
 	return this.addHandler("GET", path, handlers...)
 }
 
+// set handlers for `POST` request
 func (this *Router) POST(path string, handlers ...HTTPHandler) *Router {
 	return this.addHandler("POST", path, handlers...)
 }
 
+// set handlers for `PUT` request
 func (this *Router) PUT(path string, handlers ...HTTPHandler) *Router {
 	return this.addHandler("PUT", path, handlers...)
 }
 
+// set handlers for `DELETE` request
 func (this *Router) DELETE(path string, handlers ...HTTPHandler) *Router {
 	return this.addHandler("DELETE", path, handlers...)
 }
 
+// set handlers for `HEAD` request
 func (this *Router) HEAD(path string, handlers ...HTTPHandler) *Router {
 	return this.addHandler("HEAD", path, handlers...)
 }
 
+// set handlers functions for `GET` request
 func (this *Router) GETFunc(path string, handlers ...HTTPHandleFunc) *Router {
 	for _, handler := range handlers {
 		this.GET(path, handler); // pass them one by one, so that HTTPHandleFunc can be treat as HTTPHandler
@@ -133,6 +144,7 @@ func (this *Router) GETFunc(path string, handlers ...HTTPHandleFunc) *Router {
 	return this
 }
 
+// set handlers functions for `POST` request
 func (this *Router) POSTFunc(path string, handlers ...HTTPHandleFunc) *Router {
 	for _, handler := range handlers {
 		this.POST(path, handler);
@@ -140,6 +152,7 @@ func (this *Router) POSTFunc(path string, handlers ...HTTPHandleFunc) *Router {
 	return this
 }
 
+// set handlers functions for `PUT` request
 func (this *Router) PUTFunc(path string, handlers ...HTTPHandleFunc) *Router {
 	for _, handler := range handlers {
 		this.PUT(path, handler);
@@ -147,6 +160,7 @@ func (this *Router) PUTFunc(path string, handlers ...HTTPHandleFunc) *Router {
 	return this
 }
 
+// set handlers functions for `DELETE` request
 func (this *Router) DELETEFunc(path string, handlers ...HTTPHandleFunc) *Router {
 	for _, handler := range handlers {
 		this.DELETE(path, handler);
@@ -154,6 +168,7 @@ func (this *Router) DELETEFunc(path string, handlers ...HTTPHandleFunc) *Router 
 	return this
 }
 
+// set handlers functions for `HEAD` request
 func (this *Router) HEADFunc(path string, handlers ...HTTPHandleFunc) *Router {
 	for _, handler := range handlers {
 		this.HEAD(path, handler);
@@ -248,10 +263,12 @@ func (this *Router) route(req *http.Request, res http.ResponseWriter, done Next)
 	next(nil)
 }
 
+// implement HTTPHandler interface, make it can be as a handler
 func (this *Router) HTTPHandle(res http.ResponseWriter, req *http.Request, next Next) {
 	this.route(req, res, next)
 }
 
+// implement http.Handler interface
 func (this Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	this.route(req, rw, func(err error) {
 		if err != nil {

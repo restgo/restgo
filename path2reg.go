@@ -1,4 +1,4 @@
-package grester
+package grest
 
 import (
 	"regexp"

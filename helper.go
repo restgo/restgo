@@ -1,4 +1,4 @@
-package grester
+package grest
 
 import (
 	"net/http"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 )
 
+// send json as response, you can give status code or default 200
 func ServeJSON(rw http.ResponseWriter, data interface{}, code int) {
 	if code == 0 {
 		code = http.StatusOK
@@ -20,6 +21,7 @@ func ServeJSON(rw http.ResponseWriter, data interface{}, code int) {
 	rw.Write(content)
 }
 
+// send a string as response, you can give status code or default 200
 func ServeTEXT(rw http.ResponseWriter, data string, code int) {
 	if code == 0 {
 		code = http.StatusOK

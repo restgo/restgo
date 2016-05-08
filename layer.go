@@ -1,4 +1,4 @@
-package grester
+package grest
 
 import (
 	"regexp"
@@ -42,6 +42,7 @@ func (this *layer) match (path string) bool{
 	return true
 }
 
+// append url params to query string, you can get it by calling req.URL.Query()
 func (this *layer) registerParamsAsQuery(path string, req *http.Request){
 
 	m := this.regexp.FindStringSubmatch(path)
