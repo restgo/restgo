@@ -54,6 +54,15 @@ func (this *Router) Use(path string, handlers ...HTTPHandler) *Router {
 	return this
 }
 
+func (this *Router) UseFunc(path string, handlers ...HTTPHandleFunc) *Router {
+
+	for _, handler := range handlers {
+		this.Use(path, handler)
+	}
+
+	return this
+}
+
 func (this *Router) Route(path string) *Route {
 	route := newRoute(path)
 	layer := newLayer(path, route) // route.HTTPHandler

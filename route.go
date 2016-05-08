@@ -134,4 +134,39 @@ func (this *Route) HEAD(handlers ...HTTPHandler) *Route {
 	return this.addHandler("options", handlers...)
 }
 
+func (this *Route) GETFunc(handlers ...HTTPHandleFunc) *Route {
+	for _, handler := range handlers {
+		this.GET(handler); // pass them one by one, so that HTTPHandleFunc can be treat as HTTPHandler
+	}
+	return this
+}
+
+func (this *Route) POSTFunc(handlers ...HTTPHandleFunc) *Route {
+	for _, handler := range handlers {
+		this.POST(handler);
+	}
+	return this
+}
+
+func (this *Route) PUTFunc(handlers ...HTTPHandleFunc) *Route {
+	for _, handler := range handlers {
+		this.PUT(handler);
+	}
+	return this
+}
+
+func (this *Route) DELETEFunc(handlers ...HTTPHandleFunc) *Route {
+	for _, handler := range handlers {
+		this.DELETE(handler);
+	}
+	return this
+}
+
+func (this *Route) HEADFunc(handlers ...HTTPHandleFunc) *Route {
+	for _, handler := range handlers {
+		this.HEAD(handler);
+	}
+	return this
+}
+
 

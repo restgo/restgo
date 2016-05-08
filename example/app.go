@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/Nekle/grester"
 	"net/http"
-	"github.com/labstack/gommon/log"
+	"log"
 	"fmt"
 )
 
@@ -35,16 +35,24 @@ func main() {
 		fmt.Println("DELETE article " +id)
 		grester.ServeTEXT(rw, "DELETE article " +id, 0)
 	});
-
-
-
 	root := grester.NewRouter()
+	root.UseFunc("/", func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
+		fmt.Println("Filter all")
+		next(nil)
+	})
 
 	root.Use("/blog", blog)
-
 	root.GETFunc("/about", func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
 		fmt.Println("GET about")
 		grester.ServeTEXT(rw, "GET about", 0)
+	})
+
+	root.Route("/archive").GETFunc(func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
+		fmt.Println("GET archive")
+		grester.ServeTEXT(rw, "GET archive", 0)
+	}).POSTFunc(func (rw http.ResponseWriter, req *http.Request, next grester.Next) {
+		fmt.Println("POST archive")
+		grester.ServeTEXT(rw, "POST archive", 0)
 	})
 
 	fmt.Println("listening on 8080")
