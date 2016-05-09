@@ -18,12 +18,12 @@ go get github.com/Nekle/grest
 (/categories/:category_id)?/posts/:id
 ```
 
-URL Params will be encode in querystring, you can get values from querystring easily.  
+URL Params will be encoded in querystring, you can get values from querystring easily.  
 
 
 ## Use with Controller
 
-```
+```go
     type UserController struct {}
     
     // implement ControllerRouter Interface, then you can set route for this controller
@@ -43,7 +43,7 @@ URL Params will be encode in querystring, you can get values from querystring ea
 
 ## Demo
 
-check example `exmaple/app.go` or [demo app](https://github.com/Nekle/grest-demo)
+check example `exmaple/app.go`
 
 ```go
 	
