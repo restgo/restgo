@@ -1,5 +1,5 @@
 
-Router for api server of golang, on the top of [fasthttp](https://github.com/valyala/fasthttp), inspired by expressjs 
+Router for api server of golang, on the top of [fasthttp](https://github.com/valyala/fasthttp), inspired by expressjs, use it like expressjs.
 
 [![GoDoc](https://godoc.org/github.com/fxding/grest?status.svg)](https://godoc.org/github.com/fxding/grest)
 
