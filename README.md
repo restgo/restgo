@@ -9,6 +9,18 @@ Router for api server of golang, on the top of [fasthttp](https://github.com/val
 go get github.com/Nekle/grest
 ```
 
+
+## Url Pattern
+
+```
+/users
+/users/:id
+(/categories/:category_id)?/posts/:id
+```
+
+URL Params will be encode in querystring, you can get values from querystring easily.  
+
+
 ## Use with Controller
 
 ```
@@ -29,7 +41,7 @@ go get github.com/Nekle/grest
     //now, you can access it `GET /users/`, SIMPLE!!! 
 ```
 
-## Usage
+## Demo
 
 check example `exmaple/app.go` or [demo app](https://github.com/Nekle/grest-demo)
 
