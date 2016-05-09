@@ -14,6 +14,11 @@ type (
 
 	HTTPHandler func(ctx *fasthttp.RequestCtx, next Next)
 
+	// controller implement this interface to init router for it
+	ControllerRouter interface {
+		Route(*Router)
+	}
+
 	Router struct {
 		stack        []*layer
 		routerPrefix string // prefix path, trimmed off it when route
@@ -47,6 +52,12 @@ func (this *Router) Use(path string, handlers ...interface{}) *Router {
 		case *Route:
 			if route, ok := handler.(*Route); ok {
 				l = newLayer(path, route.HTTPHandler, false)
+			}
+		case ControllerRouter:
+			if ctrl, ok := handler.(ControllerRouter); ok {
+				router := NewRouter()
+				ctrl.Route(router)
+				this.Use(path, router)
 			}
 		default:
 			fn := reflect.ValueOf(handler)

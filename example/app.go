@@ -7,6 +7,21 @@ import (
 	"github.com/valyala/fasthttp"
 	"flag"
 )
+type UserController struct {
+	name string
+}
+
+func (this *UserController)Route(router *grest.Router) {
+	fmt.Println("Init User route for " + this.name)
+	router.GET("/", this.Get)
+}
+
+func (this *UserController) Get(ctx *fasthttp.RequestCtx, next grest.Next) {
+	params := ctx.URI().QueryString()
+	fmt.Println("GET User " +string(params) + this.name)
+	grest.ServeTEXT(ctx, "GET User " +string(params) + this.name, 0)
+}
+
 
 func main() {
 	blog := grest.NewRouter()
@@ -59,6 +74,9 @@ func main() {
 		fmt.Println("All test: " + string(ctx.Method()))
 		grest.ServeTEXT(ctx, "All test: " + string(ctx.Method()), 0)
 	})
+
+
+	root.Use("/users", &UserController{"JACK"});
 
 	var addr = flag.String("addr", ":8080", "TCP address to listen to")
 
