@@ -20,6 +20,20 @@ go get github.com/fxding/grest
 
 URL Params will be encoded in querystring, you can get values from querystring easily.  
 
+## Middleware
+
+It's easy to develop a middleware for it
+
+Such as log middleware
+```go 
+    router.Use("/", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+        fmt.Println("This is log middleware, I will log everything!")
+        next(nil)
+    })
+
+```
+
+
 
 ## Use with Controller
 
