@@ -9,64 +9,49 @@ Router for api server of golang, inspired by expressjs
 go get github.com/Nekle/grest
 ```
 
-## Session
-
-You can use [gorilla/sessions](https://github.com/gorilla/sessions) for your sessions, there are many [Session Store](https://github.com/gorilla/sessions#store-implementations) have been implemented for it.
- 
-```go
- 
-     type Session struct {}
-     
-     // use cookie to store session data
-     var store = sessions.NewCookieStore([]byte("cookie-secret"))
-     
-     // implement HTTPHandler interface
-     func (this *Session) HTTPHandle(rw http.ResponseWriter, req *http.Request, next grest.Next) {
-        defer context.Clear(req) // need to call this to clear data for this request
-     
-        session, _ := store.Get(req, "sid")
-        session.Values["name"] = "Joe"
-        session.Save(req, rw)
-     
-        next(nil)
-     }
- 
-```
-
-Add it to router
-```
-    // Session handler for all requests
-    router.Use("/", &middlewares.Session{})
+## Use with Controller
 
 ```
- 
+    type UserController struct {}
+    
+    // implement ControllerRouter Interface, then you can set route for this controller
+    func (this *UserController)Route(router *grest.Router) {
+        router.GET("/", this.Get)
+    }
+    
+    func (this *UserController) Get(ctx *fasthttp.RequestCtx, next grest.Next) {
+        grest.ServeTEXT(ctx, "GET User", 200)
+    }
+    
+    // Add it to root router
+    rootRouter.Use("/users", &UserController{});
+    
+    //now, you can access it `GET /users/`, SIMPLE!!! 
+```
 
 ## Usage
 
 check example `exmaple/app.go` or [demo app](https://github.com/Nekle/grest-demo)
 
 ```go
+	
+    router := grest.NewRouter()
+    router.Use("/", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+        fmt.Println("Filter all")
+        next(nil)
+    })
+    
+    router.GET("/about", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+        fmt.Println("GET about")
+        grest.ServeTEXT(ctx, "GET about", 0)
+    })
 
-	root := grest.NewRouter()
-	root.UseFunc("/", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
-		fmt.Println("Filter all")
-		next(nil)
-	})
+    router.All("/test", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+        fmt.Println("All test: " + string(ctx.Method()))
+        grest.ServeTEXT(ctx, "All test: " + string(ctx.Method()), 0)
+    })
 
-	root.GETFunc("/about", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
-		grest.ServeTEXT(rw, "GET about", 0)
-	})
-
-	root.Route("/archive").GETFunc(func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
-		grest.ServeTEXT(rw, "GET archive", 0)
-	}).POSTFunc(func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
-		grest.ServeTEXT(rw, "POST archive", 0)
-	})
-
-	root.AllFunc("/test", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
-		grest.ServeTEXT(rw, "All test: " + req.Method, 0)
-	})
-
-	http.ListenAndServe(":8080", root)
+    var addr = flag.String("addr", ":8080", "TCP address to listen to")
+    fasthttp.ListenAndServe(*addr, router.FastHttpHandler)
 ```
 
