@@ -28,7 +28,7 @@ URL Params will be encoded in querystring, you can get values from querystring e
     
     // implement ControllerRouter Interface, then you can set route for this controller
     func (this *UserController)Route(router *grest.Router) {
-        router.GET("/", this.Get)
+        router.GET("/", this.Get) // GET /users/
     }
     
     func (this *UserController) Get(ctx *fasthttp.RequestCtx, next grest.Next) {
