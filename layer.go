@@ -2,9 +2,9 @@ package grest
 
 import (
 	"regexp"
-	"net/http"
 	"net/url"
 	"strings"
+	"github.com/valyala/fasthttp"
 )
 
 type layer struct {
@@ -29,8 +29,12 @@ func newLayer(path string, handle HTTPHandler, end bool) *layer {
 	return l
 }
 
-func (this *layer) handleRequest(res http.ResponseWriter, req *http.Request, next Next) {
-	this.handle.HTTPHandle(res, req, next)
+func (this *layer) handleRequest(ctx *fasthttp.RequestCtx, next Next) {
+	if this.handle != nil {
+		this.handle(ctx, next)
+	} else {
+		next(nil) // ignore empty handle
+	}
 }
 
 func (this *layer) match(path string) (url.Values, bool) {
@@ -63,15 +67,14 @@ func (this *layer) match(path string) (url.Values, bool) {
 	return urlParams, false
 }
 
-// append url params to query string, you can get it by calling req.URL.Query()
-// params := req.URL.Query()
-// value := params.Get(name)
-func (this *layer) registerParamsAsQuery(req *http.Request, urlParams url.Values) {
-	query := req.URL.Query()
-	for k, v := range urlParams {
-		query[k] = v
-	}
+// append url params to query string, you can get it by calling ctx.URI().QueryString()
+// params := ctx.URI().QueryString()
+func (this *layer) registerParamsAsQuery(ctx *fasthttp.RequestCtx, urlParams url.Values) {
+	query := string(ctx.URI().QueryString())
 
-	req.URL.RawQuery = query.Encode()
+	for k, v := range urlParams {
+		query += ("&" + k + "=" + strings.Join(v, ";"))
+	}
+	ctx.URI().SetQueryString(query)
 }
 

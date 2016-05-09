@@ -2,7 +2,7 @@ package grest
 
 import (
 	"strings"
-	"net/http"
+	"github.com/valyala/fasthttp"
 )
 
 type Route struct {
@@ -48,13 +48,13 @@ func (this *Route) optionsMethods() []string {
 	return options
 }
 
-func (this *Route) dispatch(res http.ResponseWriter, req *http.Request, done Next) {
+func (this *Route) dispatch(ctx *fasthttp.RequestCtx, done Next) {
 	var idx = 0
 	if len(this.stack) == 0 {
 		done(nil)
 	}
 
-	method := strings.ToLower(req.Method)
+	method := strings.ToLower(string(ctx.Method()))
 	if method == "head" && this.methods["head"] {
 		method = "get"
 	}
@@ -81,7 +81,7 @@ func (this *Route) dispatch(res http.ResponseWriter, req *http.Request, done Nex
 		if err != nil {
 			done(err)
 		} else {
-			l.handleRequest(res, req, next)
+			l.handleRequest(ctx, next)
 		}
 	}
 
@@ -89,13 +89,12 @@ func (this *Route) dispatch(res http.ResponseWriter, req *http.Request, done Nex
 }
 
 // implement HTTPHandle interface, so you can use it as a handler
-func (this *Route) HTTPHandle(res http.ResponseWriter, req *http.Request, done Next) {
-	this.dispatch(res, req, done);
+func (this *Route) HTTPHandler(ctx *fasthttp.RequestCtx, done Next) {
+	this.dispatch(ctx, done);
 }
 
 // all types requests will go into registered handler
 func (this *Route) All(handlers ...HTTPHandler) *Route {
-	this.allMethods = true
 
 	for _, handler := range handlers {
 		var l = newLayer("/", handler, true)
@@ -103,19 +102,7 @@ func (this *Route) All(handlers ...HTTPHandler) *Route {
 		this.stack = append(this.stack, l)
 	}
 
-	return this
-}
-
-// all types requests will go into registered handler function
-func (this *Route) AllFunc(handlers ...HTTPHandleFunc) *Route {
 	this.allMethods = true
-
-	for _, handler := range handlers {
-		var l = newLayer("/", handler, true)
-		l.method = ""
-		this.stack = append(this.stack, l)
-	}
-
 	return this
 }
 
@@ -154,40 +141,3 @@ func (this *Route) DELETE(handlers ...HTTPHandler) *Route {
 func (this *Route) HEAD(handlers ...HTTPHandler) *Route {
 	return this.addHandler("options", handlers...)
 }
-
-func (this *Route) GETFunc(handlers ...HTTPHandleFunc) *Route {
-	for _, handler := range handlers {
-		this.GET(handler); // pass them one by one, so that HTTPHandleFunc can be treat as HTTPHandler
-	}
-	return this
-}
-
-func (this *Route) POSTFunc(handlers ...HTTPHandleFunc) *Route {
-	for _, handler := range handlers {
-		this.POST(handler);
-	}
-	return this
-}
-
-func (this *Route) PUTFunc(handlers ...HTTPHandleFunc) *Route {
-	for _, handler := range handlers {
-		this.PUT(handler);
-	}
-	return this
-}
-
-func (this *Route) DELETEFunc(handlers ...HTTPHandleFunc) *Route {
-	for _, handler := range handlers {
-		this.DELETE(handler);
-	}
-	return this
-}
-
-func (this *Route) HEADFunc(handlers ...HTTPHandleFunc) *Route {
-	for _, handler := range handlers {
-		this.HEAD(handler);
-	}
-	return this
-}
-
-

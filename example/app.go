@@ -2,68 +2,68 @@ package main
 
 import (
 	"github.com/Nekle/grest"
-	"net/http"
 	"log"
 	"fmt"
+	"github.com/valyala/fasthttp"
+	"flag"
 )
 
 func main() {
 	blog := grest.NewRouter()
 
-	blog.GETFunc("/articles/:id", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
-		params := req.URL.Query()
-		id := params["id"][0]
-		fmt.Println("GET article " +id)
-		grest.ServeTEXT(rw, "GET article " +id, 0)
+	blog.GET("/articles/:id", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+		params := ctx.URI().QueryString()
+		fmt.Println("GET article " +string(params))
+		grest.ServeTEXT(ctx, "GET article " +string(params), 0)
 	});
 
-	blog.POSTFunc("/articles", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
+	blog.POST("/articles", func (ctx *fasthttp.RequestCtx, next grest.Next) {
 		fmt.Println( "POST article ")
-		grest.ServeTEXT(rw, "POST article ", 0)
+		grest.ServeTEXT(ctx, "POST article ", 0)
 	});
 
-	blog.PUTFunc("/articles/:id", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
-		params := req.URL.Query()
-		id := params["id"][0]
-		fmt.Println("PUT article " +id)
-		grest.ServeTEXT(rw, "PUT article " +id, 0)
+	blog.PUT("/articles/:id", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+		params := ctx.URI().QueryString()
+		fmt.Println("PUT article " +string(params))
+		grest.ServeTEXT(ctx, "PUT article " +string(params), 0)
 	});
 
-	blog.DELETEFunc("/articles/:id", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
-		params := req.URL.Query()
-		id := params["id"][0]
-		fmt.Println("DELETE article " +id)
-		grest.ServeTEXT(rw, "DELETE article " +id, 0)
+	blog.DELETE("/articles/:id", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+		params := ctx.URI().QueryString()
+		fmt.Println("DELETE article " +string(params))
+		grest.ServeTEXT(ctx, "DELETE article " +string(params), 0)
 	});
 
 
 	root := grest.NewRouter()
-	root.UseFunc("/", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
+	root.Use("/", func (ctx *fasthttp.RequestCtx, next grest.Next) {
 		fmt.Println("Filter all")
 		next(nil)
 	})
 
 	root.Use("/blog", blog)
-	root.GETFunc("/about", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
+	root.GET("/about", func (ctx *fasthttp.RequestCtx, next grest.Next) {
 		fmt.Println("GET about")
-		grest.ServeTEXT(rw, "GET about", 0)
+		grest.ServeTEXT(ctx, "GET about", 0)
 	})
 
-	root.Route("/archive").GETFunc(func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
+	root.Route("/archive").GET(func (ctx *fasthttp.RequestCtx, next grest.Next) {
 		fmt.Println("GET archive")
-		grest.ServeTEXT(rw, "GET archive", 0)
-	}).POSTFunc(func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
+		grest.ServeTEXT(ctx, "GET archive", 0)
+	}).POST(func (ctx *fasthttp.RequestCtx, next grest.Next) {
 		fmt.Println("POST archive")
-		grest.ServeTEXT(rw, "POST archive", 0)
+		grest.ServeTEXT(ctx, "POST archive", 0)
 	})
 
-	root.AllFunc("/test", func (rw http.ResponseWriter, req *http.Request, next grest.Next) {
-		fmt.Println("All test: " + req.Method)
-		grest.ServeTEXT(rw, "All test: " + req.Method, 0)
+	root.All("/test", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+		fmt.Println("All test: " + string(ctx.Method()))
+		grest.ServeTEXT(ctx, "All test: " + string(ctx.Method()), 0)
 	})
+
+	var addr = flag.String("addr", ":8080", "TCP address to listen to")
 
 	fmt.Println("listening on 8080")
-	if err := http.ListenAndServe(":8080", root); err != nil {
-		log.Fatal("Something wrong")
+	if err := fasthttp.ListenAndServe(*addr, root.FastHttpHandler); err != nil {
+		log.Fatalf("Error in ListenAndServe: %s", err)
 	}
 }

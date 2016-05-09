@@ -5,28 +5,20 @@ import (
 	"strings"
 	"encoding/json"
 	"net/url"
+	"github.com/valyala/fasthttp"
+	"reflect"
 )
 
 type (
 	Next func(err error)
 
-	// implement this interface to handle http request
-	HTTPHandler interface {
-		HTTPHandle(res http.ResponseWriter, req *http.Request, next Next)
-	}
-
-	HTTPHandleFunc func(res http.ResponseWriter, req *http.Request, next Next)
+	HTTPHandler func(ctx *fasthttp.RequestCtx, next Next)
 
 	Router struct {
 		stack        []*layer
 		routerPrefix string // prefix path, trimmed off it when route
 	}
 )
-
-// implement HTTPHandle, and call itself
-func (h HTTPHandleFunc) HTTPHandle(res http.ResponseWriter, req *http.Request, next Next) {
-	h(res, req, next)
-}
 
 // Create one new Router
 func NewRouter() *Router {
@@ -38,30 +30,38 @@ func NewRouter() *Router {
 }
 
 // set handlers for `path`, default is `/`. you can use it as filters
-func (this *Router) Use(path string, handlers ...HTTPHandler) *Router {
+func (this *Router) Use(path string, handlers ...interface{}) *Router {
 	if path == "" {
 		path = "/" // default to root path
 	}
 
+
 	for _, handler := range handlers {
-		// prepare router prefix path
-		if r, ok := handler.(*Router); ok == true {
-			r.routerPrefix = this.routerPrefix + path
+		var l *layer
+		switch handler.(type) {
+		case *Router:
+			if router, ok := handler.(*Router); ok {
+				router.routerPrefix = this.routerPrefix + path // prepare router prefix path
+				l = newLayer(path, router.HTTPHandler, false)
+			}
+		case *Route:
+			if route, ok := handler.(*Route); ok {
+				l = newLayer(path, route.HTTPHandler, false)
+			}
+		default:
+			fn := reflect.ValueOf(handler)
+			fnType := fn.Type()
+			if fnType.Kind() != reflect.Func || fnType.NumIn() != 2 || fnType.NumOut() != 0 {
+				panic("Expected a type grest.HTTPHandler function")
+			}
+			l = newLayer(path, func (ctx *fasthttp.RequestCtx, next Next) {
+				fn.Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(next)})
+			}, false)
 		}
-
-		l := newLayer(path, handler, false)
-		l.route = nil
-		this.stack = append(this.stack, l)
-	}
-
-	return this
-}
-
-// set handler funcitons for `path`, default is `/`. you can use it as filters
-func (this *Router) UseFunc(path string, handlers ...HTTPHandleFunc) *Router {
-
-	for _, handler := range handlers {
-		this.Use(path, handler)
+		if l != nil {
+			l.route = nil
+			this.stack = append(this.stack, l)
+		}
 	}
 
 	return this
@@ -70,7 +70,7 @@ func (this *Router) UseFunc(path string, handlers ...HTTPHandleFunc) *Router {
 // create a sub-route
 func (this *Router) Route(path string) *Route {
 	route := newRoute(path)
-	l := newLayer(path, route, true) // route.HTTPHandler
+	l := newLayer(path, route.HTTPHandler, true)
 
 	l.route = route
 
@@ -80,15 +80,8 @@ func (this *Router) Route(path string) *Route {
 }
 
 // set handlers for all types requests
-func (this *Router)All(path string, handlers ...HTTPHandler) *Router{
+func (this *Router)All(path string, handlers ...HTTPHandler) *Router {
 	this.Route(path).All(handlers...)
-
-	return this
-}
-
-// set handlers functions for all types requests
-func (this *Router)AllFunc(path string, handlers ...HTTPHandleFunc) *Router{
-	this.Route(path).AllFunc(handlers...)
 
 	return this
 }
@@ -137,71 +130,30 @@ func (this *Router) HEAD(path string, handlers ...HTTPHandler) *Router {
 	return this.addHandler("HEAD", path, handlers...)
 }
 
-// set handlers functions for `GET` request
-func (this *Router) GETFunc(path string, handlers ...HTTPHandleFunc) *Router {
-	for _, handler := range handlers {
-		this.GET(path, handler); // pass them one by one, so that HTTPHandleFunc can be treat as HTTPHandler
-	}
-	return this
-}
-
-// set handlers functions for `POST` request
-func (this *Router) POSTFunc(path string, handlers ...HTTPHandleFunc) *Router {
-	for _, handler := range handlers {
-		this.POST(path, handler);
-	}
-	return this
-}
-
-// set handlers functions for `PUT` request
-func (this *Router) PUTFunc(path string, handlers ...HTTPHandleFunc) *Router {
-	for _, handler := range handlers {
-		this.PUT(path, handler);
-	}
-	return this
-}
-
-// set handlers functions for `DELETE` request
-func (this *Router) DELETEFunc(path string, handlers ...HTTPHandleFunc) *Router {
-	for _, handler := range handlers {
-		this.DELETE(path, handler);
-	}
-	return this
-}
-
-// set handlers functions for `HEAD` request
-func (this *Router) HEADFunc(path string, handlers ...HTTPHandleFunc) *Router {
-	for _, handler := range handlers {
-		this.HEAD(path, handler);
-	}
-	return this
-}
-
-
 func (this *Router) matchLayer(l *layer, path string) (url.Values, bool) {
 	urlParams, match := l.match(path)
 	return urlParams, match
 }
 
-func (this *Router) route(req *http.Request, res http.ResponseWriter, done Next) {
+func (this *Router) route(ctx *fasthttp.RequestCtx, done Next) {
 	var next func(err error)
 	var idx = 0
 
 	var allowOptionsMethods = make([]string, 0, 5)
-	if req.Method == "OPTIONS" {
+	if string(ctx.Method()) == "OPTIONS" {
 		// reply OPTIONS request automatically
 		old := done
 		done = func(err error) {
 			if err != nil || len(allowOptionsMethods) == 0 {
 				old(err)
 			} else {
-				res.Header().Add("Allow", strings.Join(allowOptionsMethods, ","))
+				ctx.Response.Header.Add("Allow", strings.Join(allowOptionsMethods, ","))
 				data, err := json.Marshal(allowOptionsMethods)
 				if err != nil {
 					old(err)
 					return
 				}
-				res.Write(data)
+				ctx.Write(data)
 			}
 
 		}
@@ -213,7 +165,7 @@ func (this *Router) route(req *http.Request, res http.ResponseWriter, done Next)
 			return
 		}
 		// get trimmed path for current router
-		path := strings.TrimPrefix(req.URL.Path, this.routerPrefix)
+		path := strings.TrimPrefix(string(ctx.Path()), this.routerPrefix)
 		if path == "" {
 			done(err)
 			return
@@ -234,7 +186,7 @@ func (this *Router) route(req *http.Request, res http.ResponseWriter, done Next)
 			if match != true || route == nil {
 				continue
 			}
-			method := req.Method
+			method := string(ctx.Method())
 			hasMethod := route.handlesMethod(method)
 
 			if !hasMethod && method == "OPTIONS" {
@@ -252,27 +204,27 @@ func (this *Router) route(req *http.Request, res http.ResponseWriter, done Next)
 			done(err)
 			return
 		}
-		l.registerParamsAsQuery(req, urlParams)
+		l.registerParamsAsQuery(ctx, urlParams)
 
-		l.handleRequest(res, req, next)
+		l.handleRequest(ctx, next)
 	}
 
 	next(nil)
 }
 
 // implement HTTPHandler interface, make it can be as a handler
-func (this *Router) HTTPHandle(res http.ResponseWriter, req *http.Request, next Next) {
-	this.route(req, res, next)
+func (this *Router) HTTPHandler(ctx *fasthttp.RequestCtx, next Next) {
+	this.route(ctx, next)
 }
 
-// implement http.Handler interface
-func (this Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	this.route(req, rw, func(err error) {
+// implement fasthttp.RequestHandler function
+func (this *Router) FastHttpHandler(ctx *fasthttp.RequestCtx) {
+	this.route(ctx, func(err error) {
 		if err != nil {
-			http.Error(rw, "Something wrong", http.StatusInternalServerError)
+			ctx.Error("Something wrong", http.StatusInternalServerError)
 			return
 		}
-		http.NotFound(rw, req)
+		ctx.NotFound()
 	})
 }
 
