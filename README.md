@@ -1,5 +1,5 @@
 
-Router for api server of golang, inspired by expressjs 
+Router for api server of golang, on the top of [fasthttp](https://github.com/valyala/fasthttp), inspired by expressjs 
 
 [![GoDoc](https://godoc.org/github.com/Nekle/grest?status.svg)](https://godoc.org/github.com/Nekle/grest)
 
