@@ -200,8 +200,10 @@ func (this *Router) route(ctx *fasthttp.RequestCtx, done Next) {
 			done(err)
 			return
 		}
+		// append url params at the end of querystring
 		l.registerParamsAsQuery(ctx, urlParams)
-
+		
+		// request match, call handler function
 		l.handleRequest(ctx, next)
 	}
 
