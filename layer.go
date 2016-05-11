@@ -45,6 +45,9 @@ func (this *layer) match(path string) (url.Values, bool) {
 			match = (this.path == path)
 		} else {
 			match = strings.HasPrefix(path, this.path)
+			if match == true {
+				match = (len(path) == len(this.path) || path[len(this.path)] == '/')
+			}
 		}
 
 		return urlParams, match
@@ -60,7 +63,6 @@ func (this *layer) match(path string) (url.Values, bool) {
 				urlParams.Set(name, value)
 			}
 		}
-
 		return urlParams, true
 	}
 
