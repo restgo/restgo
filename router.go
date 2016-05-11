@@ -112,6 +112,8 @@ func (this *Router) addHandler(method string, path string, handlers ...HTTPHandl
 		route.HEAD(handlers...);
 	case "OPTIONS":
 		route.OPTIONS(handlers...);
+	case "PATCH":
+		route.PATCH(handlers...);
 		// ignore others
 	}
 	return this
@@ -145,6 +147,11 @@ func (this *Router) HEAD(path string, handlers ...HTTPHandler) *Router {
 // set handlers for `OPTIONS` request
 func (this *Router) OPTIONS(path string, handlers ...HTTPHandler) *Router {
 	return this.addHandler("OPTIONS", path, handlers...)
+}
+
+// set handlers for `PATCH` request
+func (this *Router) PATCH(path string, handlers ...HTTPHandler) *Router {
+	return this.addHandler("PATCH", path, handlers...)
 }
 
 func (this *Router) matchLayer(l *layer, path string) (url.Values, bool) {

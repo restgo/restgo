@@ -126,3 +126,8 @@ func (this *Route) HEAD(handlers ...HTTPHandler) *Route {
 func (this *Route) OPTIONS(handlers ...HTTPHandler) *Route {
 	return this.addHandler("options", handlers...)
 }
+
+// register handlers for `PATCH` request
+func (this *Route) PATCH(handlers ...HTTPHandler) *Route {
+	return this.addHandler("patch", handlers...)
+}
