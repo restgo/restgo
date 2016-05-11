@@ -3,7 +3,6 @@ package restgo
 import (
 	"net/http"
 	"strings"
-	"encoding/json"
 	"net/url"
 	"github.com/valyala/fasthttp"
 	"reflect"
@@ -111,7 +110,9 @@ func (this *Router) addHandler(method string, path string, handlers ...HTTPHandl
 		route.DELETE(handlers...);
 	case "HEAD":
 		route.HEAD(handlers...);
-	// ignore others
+	case "OPTIONS":
+		route.OPTIONS(handlers...);
+		// ignore others
 	}
 	return this
 }
@@ -141,6 +142,11 @@ func (this *Router) HEAD(path string, handlers ...HTTPHandler) *Router {
 	return this.addHandler("HEAD", path, handlers...)
 }
 
+// set handlers for `OPTIONS` request
+func (this *Router) OPTIONS(path string, handlers ...HTTPHandler) *Router {
+	return this.addHandler("OPTIONS", path, handlers...)
+}
+
 func (this *Router) matchLayer(l *layer, path string) (url.Values, bool) {
 	urlParams, match := l.match(path)
 	return urlParams, match
@@ -149,26 +155,6 @@ func (this *Router) matchLayer(l *layer, path string) (url.Values, bool) {
 func (this *Router) route(ctx *fasthttp.RequestCtx, done Next) {
 	var next func(err error)
 	var idx = 0
-
-	var allowOptionsMethods = make([]string, 0, 5)
-	if string(ctx.Method()) == "OPTIONS" {
-		// reply OPTIONS request automatically
-		old := done
-		done = func(err error) {
-			if err != nil || len(allowOptionsMethods) == 0 {
-				old(err)
-			} else {
-				ctx.Response.Header.Add("Allow", strings.Join(allowOptionsMethods, ","))
-				data, err := json.Marshal(allowOptionsMethods)
-				if err != nil {
-					old(err)
-					return
-				}
-				ctx.Write(data)
-			}
-
-		}
-	}
 
 	next = func(err error) {
 		if idx >= len(this.stack) {
@@ -191,6 +177,7 @@ func (this *Router) route(ctx *fasthttp.RequestCtx, done Next) {
 		for ; match != true && idx < len(this.stack); {
 			l = this.stack[idx]
 			idx ++
+			// check url match
 			urlParams, match = this.matchLayer(l, path);
 			route = l.route
 
@@ -198,17 +185,8 @@ func (this *Router) route(ctx *fasthttp.RequestCtx, done Next) {
 				continue
 			}
 			method := string(ctx.Method())
-			hasMethod := route.handlesMethod(method)
-
-			if !hasMethod && method == "OPTIONS" {
-				for _, method := range route.optionsMethods() {
-					allowOptionsMethods = append(allowOptionsMethods, method)
-				}
-			}
-
-			if !hasMethod && method != "HEAD" {
-				match = false
-			}
+			// check method match
+			match = route.handlesMethod(method)
 		}
 
 		if match != true || err != nil {

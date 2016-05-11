@@ -26,26 +26,9 @@ func (this *Route) handlesMethod(method string) bool {
 	if this.allMethods {
 		return true
 	}
+
 	name := strings.ToLower(method)
-	if name == "head" && !this.methods["head"] {
-		name = "get"
-	}
 	return bool(this.methods[name])
-
-}
-
-func (this *Route) optionsMethods() []string {
-	var options = make([]string, 0, len(this.methods))
-
-	for method, _ := range this.methods {
-		options = append(options, strings.ToUpper(method))
-	}
-
-	if this.methods["get"] && !this.methods["head"] {
-		options = append(options, "HEAD")
-	}
-
-	return options
 }
 
 func (this *Route) dispatch(ctx *fasthttp.RequestCtx, done Next) {
@@ -55,9 +38,6 @@ func (this *Route) dispatch(ctx *fasthttp.RequestCtx, done Next) {
 	}
 
 	method := strings.ToLower(string(ctx.Method()))
-	if method == "head" && this.methods["head"] {
-		method = "get"
-	}
 
 	var next Next
 
@@ -139,5 +119,10 @@ func (this *Route) DELETE(handlers ...HTTPHandler) *Route {
 
 // register handlers for `HEAD` request
 func (this *Route) HEAD(handlers ...HTTPHandler) *Route {
+	return this.addHandler("head", handlers...)
+}
+
+// register handlers for `OPTIONS` request
+func (this *Route) OPTIONS(handlers ...HTTPHandler) *Route {
 	return this.addHandler("options", handlers...)
 }
