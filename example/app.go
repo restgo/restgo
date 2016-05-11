@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/valyala/fasthttp"
 	"flag"
-	"github.com/fxding/restgo"
+	"github.com/restgo/restgo"
 )
 type UserController struct {
 	name string
