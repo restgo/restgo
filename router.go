@@ -1,11 +1,11 @@
 package restgo
 
 import (
-	"net/http"
-	"strings"
-	"net/url"
 	"github.com/valyala/fasthttp"
+	"net/http"
+	"net/url"
 	"reflect"
+	"strings"
 )
 
 type (
@@ -39,7 +39,6 @@ func (this *Router) Use(path string, handlers ...interface{}) *Router {
 		path = "/" // default to root path
 	}
 
-
 	for _, handler := range handlers {
 		var l *layer
 		switch handler.(type) {
@@ -64,7 +63,7 @@ func (this *Router) Use(path string, handlers ...interface{}) *Router {
 			if fnType.Kind() != reflect.Func || fnType.NumIn() != 2 || fnType.NumOut() != 0 {
 				panic("Expected a type restgo.HTTPHandler function")
 			}
-			l = newLayer(path, func (ctx *fasthttp.RequestCtx, next Next) {
+			l = newLayer(path, func(ctx *fasthttp.RequestCtx, next Next) {
 				fn.Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(next)})
 			}, false)
 		}
@@ -90,7 +89,7 @@ func (this *Router) Route(path string) *Route {
 }
 
 // set handlers for all types requests
-func (this *Router)All(path string, handlers ...HTTPHandler) *Router {
+func (this *Router) All(path string, handlers ...HTTPHandler) *Router {
 	this.Route(path).All(handlers...)
 
 	return this
@@ -101,19 +100,19 @@ func (this *Router) addHandler(method string, path string, handlers ...HTTPHandl
 
 	switch method {
 	case "GET":
-		route.GET(handlers...);
+		route.GET(handlers...)
 	case "POST":
-		route.POST(handlers...);
+		route.POST(handlers...)
 	case "PUT":
-		route.PUT(handlers...);
+		route.PUT(handlers...)
 	case "DELETE":
-		route.DELETE(handlers...);
+		route.DELETE(handlers...)
 	case "HEAD":
-		route.HEAD(handlers...);
+		route.HEAD(handlers...)
 	case "OPTIONS":
-		route.OPTIONS(handlers...);
+		route.OPTIONS(handlers...)
 	case "PATCH":
-		route.PATCH(handlers...);
+		route.PATCH(handlers...)
 		// ignore others
 	}
 	return this
@@ -181,11 +180,11 @@ func (this *Router) route(ctx *fasthttp.RequestCtx, done Next) {
 		var route *Route
 		var urlParams url.Values
 
-		for ; match != true && idx < len(this.stack); {
+		for match != true && idx < len(this.stack) {
 			l = this.stack[idx]
-			idx ++
+			idx++
 			// check url match
-			urlParams, match = this.matchLayer(l, path);
+			urlParams, match = this.matchLayer(l, path)
 			route = l.route
 
 			if match != true || route == nil {
@@ -202,7 +201,7 @@ func (this *Router) route(ctx *fasthttp.RequestCtx, done Next) {
 		}
 		// append url params at the end of querystring
 		l.registerParamsAsQuery(ctx, urlParams)
-		
+
 		// request match, call handler function
 		l.handleRequest(ctx, next)
 	}
@@ -225,6 +224,3 @@ func (this *Router) FastHttpHandler(ctx *fasthttp.RequestCtx) {
 		ctx.NotFound()
 	})
 }
-
-
-

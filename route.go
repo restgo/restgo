@@ -1,8 +1,8 @@
 package restgo
 
 import (
-	"strings"
 	"github.com/valyala/fasthttp"
+	"strings"
 )
 
 type Route struct {
@@ -14,9 +14,9 @@ type Route struct {
 
 func newRoute(path string) *Route {
 	route := &Route{
-		path: path,
-		stack: make([]*layer, 0),
-		methods:make(map[string]bool),
+		path:    path,
+		stack:   make([]*layer, 0),
+		methods: make(map[string]bool),
 	}
 
 	return route
@@ -70,7 +70,7 @@ func (this *Route) dispatch(ctx *fasthttp.RequestCtx, done Next) {
 
 // implement HTTPHandle interface, so you can use it as a handler
 func (this *Route) HTTPHandler(ctx *fasthttp.RequestCtx, done Next) {
-	this.dispatch(ctx, done);
+	this.dispatch(ctx, done)
 }
 
 // all types requests will go into registered handler

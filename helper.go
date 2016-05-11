@@ -1,9 +1,9 @@
 package restgo
 
 import (
-	"net/http"
 	"encoding/json"
 	"github.com/valyala/fasthttp"
+	"net/http"
 )
 
 // send json as response, you can give status code or default 200
@@ -17,7 +17,7 @@ func ServeJSON(ctx *fasthttp.RequestCtx, data interface{}, code int) {
 		ctx.Error(err.Error(), http.StatusInternalServerError)
 		return
 	}
-	ctx.SetContentType( "application/json")
+	ctx.SetContentType("application/json")
 	ctx.Write(content)
 }
 

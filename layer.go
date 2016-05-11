@@ -1,10 +1,10 @@
 package restgo
 
 import (
-	"regexp"
-	"net/url"
-	"strings"
 	"github.com/valyala/fasthttp"
+	"net/url"
+	"regexp"
+	"strings"
 )
 
 type layer struct {
@@ -15,7 +15,7 @@ type layer struct {
 	isStatic   bool
 	isEnd      bool
 
-	route      *Route
+	route *Route
 }
 
 func newLayer(path string, handle HTTPHandler, end bool) *layer {
@@ -77,4 +77,3 @@ func (this *layer) registerParamsAsQuery(ctx *fasthttp.RequestCtx, urlParams url
 	}
 	ctx.URI().SetQueryString(query)
 }
-
