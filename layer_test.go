@@ -1,8 +1,8 @@
 package restgo
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func Test_match(t *testing.T) {
@@ -10,12 +10,12 @@ func Test_match(t *testing.T) {
 
 	tests := [][]interface{}{
 		{
-			`/`, // router path
+			`/`,  // router path
 			true, // is end
 			true, // static
 			[][]interface{}{ // real url
-				{ `/`, true},
-				{ ``, false},
+				{`/`, true},
+				{``, false},
 			},
 		},
 		{
@@ -48,14 +48,14 @@ func Test_match(t *testing.T) {
 		},
 		{
 			`/blog`, // router path
-			false, // is end
-			true, // static
+			false,   // is end
+			true,    // static
 			[][]interface{}{ // real url
-				{ `/blog`, true},
-				{ `/blog/article`, true},
-				{ `/blog/`, true},
-				{ `/bblog/`, false},
-				{ `/blogg`, false},
+				{`/blog`, true},
+				{`/blog/article`, true},
+				{`/blog/`, true},
+				{`/bblog/`, false},
+				{`/blogg`, false},
 			},
 		},
 		{
@@ -63,13 +63,13 @@ func Test_match(t *testing.T) {
 			false,
 			false,
 			[][]interface{}{
-				{ `/blog/id`, true},
-				{ `/blog/asd/`, true},
-				{ `/blog/asd/asd`, true},
-				{ `/blog/asd/asd/asd`, true},
-				{ `/blog/`, false},
-				{ `/bblog/`, false},
-				{ `/blogg`, false},
+				{`/blog/id`, true},
+				{`/blog/asd/`, true},
+				{`/blog/asd/asd`, true},
+				{`/blog/asd/asd/asd`, true},
+				{`/blog/`, false},
+				{`/bblog/`, false},
+				{`/blogg`, false},
 			},
 		},
 		{
@@ -77,17 +77,17 @@ func Test_match(t *testing.T) {
 			false,
 			false,
 			[][]interface{}{
-				{ `/b1/id`, true},
-				{ `/b2/asd/`, true},
-				{ `/b3/asd/asd`, true},
-				{ `/b4/asd/asd/asd`, true},
-				{ `/b5/`, true},
-				{ `/b6`, true},
+				{`/b1/id`, true},
+				{`/b2/asd/`, true},
+				{`/b3/asd/asd`, true},
+				{`/b4/asd/asd/asd`, true},
+				{`/b5/`, true},
+				{`/b6`, true},
 			},
 		},
 	}
 
-	for _, pair := range tests{
+	for _, pair := range tests {
 		routerPath, _ := pair[0].(string)
 		isEnd, _ := pair[1].(bool)
 		l := newLayer(routerPath, nil, isEnd)
@@ -97,7 +97,7 @@ func Test_match(t *testing.T) {
 
 		// match
 		urls, _ := pair[3].([][]interface{})
-		for _, url := range urls  {
+		for _, url := range urls {
 			testUrl, _ := url[0].(string)
 			expectedMatch, _ := url[1].(bool)
 			_, match := l.match(testUrl)
