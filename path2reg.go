@@ -38,7 +38,7 @@ func path2Regexp(path string, end bool) (*regexp.Regexp, bool) {
 	if end {
 		str = fmt.Sprintf(`\A%s\z`, regexpString)
 	} else {
-		str = fmt.Sprintf(`\A%s/?`, regexpString)
+		str = fmt.Sprintf(`\A%s`, regexpString)
 	}
 
 	return regexp.MustCompile(str), isStatic

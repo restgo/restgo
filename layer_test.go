@@ -19,6 +19,16 @@ func Test_match(t *testing.T) {
 			},
 		},
 		{
+			`/`,
+			false,
+			true,
+			[][]interface{}{ // real url
+				{`/`, true},
+				{`/test`, true},
+				{``, false},
+			},
+		},
+		{
 			`/foo/bar`,
 			true,
 			true,
@@ -55,7 +65,7 @@ func Test_match(t *testing.T) {
 				{`/blog/article`, true},
 				{`/blog/`, true},
 				{`/bblog/`, false},
-				{`/blogg`, false},
+				{`/blogg`, true}, // for not end url, this can match
 			},
 		},
 		{
