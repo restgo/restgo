@@ -1,4 +1,4 @@
-package grest
+package restgo
 
 import (
 	"net/http"
@@ -63,7 +63,7 @@ func (this *Router) Use(path string, handlers ...interface{}) *Router {
 			fn := reflect.ValueOf(handler)
 			fnType := fn.Type()
 			if fnType.Kind() != reflect.Func || fnType.NumIn() != 2 || fnType.NumOut() != 0 {
-				panic("Expected a type grest.HTTPHandler function")
+				panic("Expected a type restgo.HTTPHandler function")
 			}
 			l = newLayer(path, func (ctx *fasthttp.RequestCtx, next Next) {
 				fn.Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(next)})

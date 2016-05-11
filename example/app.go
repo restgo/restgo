@@ -1,78 +1,78 @@
 package main
 
 import (
-	"github.com/Nekle/grest"
 	"log"
 	"fmt"
 	"github.com/valyala/fasthttp"
 	"flag"
+	"github.com/fxding/restgo"
 )
 type UserController struct {
 	name string
 }
 
-func (this *UserController)Route(router *grest.Router) {
+func (this *UserController)Route(router *restgo.Router) {
 	fmt.Println("Init User route for " + this.name)
 	router.GET("/", this.Get)
 }
 
-func (this *UserController) Get(ctx *fasthttp.RequestCtx, next grest.Next) {
+func (this *UserController) Get(ctx *fasthttp.RequestCtx, next restgo.Next) {
 	params := ctx.URI().QueryString()
 	fmt.Println("GET User " +string(params) + this.name)
-	grest.ServeTEXT(ctx, "GET User " +string(params) + this.name, 0)
+	restgo.ServeTEXT(ctx, "GET User " +string(params) + this.name, 0)
 }
 
 
 func main() {
-	blog := grest.NewRouter()
+	blog := restgo.NewRouter()
 
-	blog.GET("/articles/:id", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+	blog.GET("/articles/:id", func (ctx *fasthttp.RequestCtx, next restgo.Next) {
 		params := ctx.URI().QueryString()
 		fmt.Println("GET article " +string(params))
-		grest.ServeTEXT(ctx, "GET article " +string(params), 0)
+		restgo.ServeTEXT(ctx, "GET article " +string(params), 0)
 	});
 
-	blog.POST("/articles", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+	blog.POST("/articles", func (ctx *fasthttp.RequestCtx, next restgo.Next) {
 		fmt.Println( "POST article ")
-		grest.ServeTEXT(ctx, "POST article ", 0)
+		restgo.ServeTEXT(ctx, "POST article ", 0)
 	});
 
-	blog.PUT("/articles/:id", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+	blog.PUT("/articles/:id", func (ctx *fasthttp.RequestCtx, next restgo.Next) {
 		params := ctx.URI().QueryString()
 		fmt.Println("PUT article " +string(params))
-		grest.ServeTEXT(ctx, "PUT article " +string(params), 0)
+		restgo.ServeTEXT(ctx, "PUT article " +string(params), 0)
 	});
 
-	blog.DELETE("/articles/:id", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+	blog.DELETE("/articles/:id", func (ctx *fasthttp.RequestCtx, next restgo.Next) {
 		params := ctx.URI().QueryString()
 		fmt.Println("DELETE article " +string(params))
-		grest.ServeTEXT(ctx, "DELETE article " +string(params), 0)
+		restgo.ServeTEXT(ctx, "DELETE article " +string(params), 0)
 	});
 
 
-	root := grest.NewRouter()
-	root.Use("/", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+	root := restgo.NewRouter()
+	root.Use("/", func (ctx *fasthttp.RequestCtx, next restgo.Next) {
 		fmt.Println("Filter all")
 		next(nil)
 	})
 
 	root.Use("/blog", blog)
-	root.GET("/about", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+	root.GET("/about", func (ctx *fasthttp.RequestCtx, next restgo.Next) {
 		fmt.Println("GET about")
-		grest.ServeTEXT(ctx, "GET about", 0)
+		restgo.ServeTEXT(ctx, "GET about", 0)
 	})
 
-	root.Route("/archive").GET(func (ctx *fasthttp.RequestCtx, next grest.Next) {
+	root.Route("/archive").GET(func (ctx *fasthttp.RequestCtx, next restgo.Next) {
 		fmt.Println("GET archive")
-		grest.ServeTEXT(ctx, "GET archive", 0)
-	}).POST(func (ctx *fasthttp.RequestCtx, next grest.Next) {
+		restgo.ServeTEXT(ctx, "GET archive", 0)
+	}).POST(func (ctx *fasthttp.RequestCtx, next restgo.Next) {
 		fmt.Println("POST archive")
-		grest.ServeTEXT(ctx, "POST archive", 0)
+		restgo.ServeTEXT(ctx, "POST archive", 0)
 	})
 
-	root.All("/test", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+	root.All("/test", func (ctx *fasthttp.RequestCtx, next restgo.Next) {
 		fmt.Println("All test: " + string(ctx.Method()))
-		grest.ServeTEXT(ctx, "All test: " + string(ctx.Method()), 0)
+		restgo.ServeTEXT(ctx, "All test: " + string(ctx.Method()), 0)
 	})
 
 

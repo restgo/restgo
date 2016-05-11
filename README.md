@@ -1,12 +1,12 @@
 
 Router for api server of golang, on the top of [fasthttp](https://github.com/valyala/fasthttp), inspired by expressjs, use it like [expressjs](http://expressjs.com/en/guide/routing.html).
 
-[![GoDoc](https://godoc.org/github.com/fxding/grest?status.svg)](https://godoc.org/github.com/fxding/grest)
+[![GoDoc](https://godoc.org/github.com/restgo/restgo?status.svg)](https://godoc.org/github.com/restgo/restgo)
 
 ## Install
 
 ```shell
-go get github.com/fxding/grest
+go get github.com/restgo/restgo
 ```
 
 
@@ -26,7 +26,7 @@ It's easy to develop a middleware for it
 
 Such as log middleware
 ```go 
-    router.Use("/", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+    router.Use("/", func (ctx *fasthttp.RequestCtx, next restgo.Next) {
         fmt.Println("This is log middleware, I will log everything!")
         next(nil)
     })
@@ -41,12 +41,12 @@ Such as log middleware
     type UserController struct {}
     
     // implement ControllerRouter Interface, then you can set route for this controller
-    func (this *UserController)Route(router *grest.Router) {
+    func (this *UserController)Route(router *restgo.Router) {
         router.GET("/", this.Get) // GET /users/
     }
     
-    func (this *UserController) Get(ctx *fasthttp.RequestCtx, next grest.Next) {
-        grest.ServeTEXT(ctx, "GET User", 200)
+    func (this *UserController) Get(ctx *fasthttp.RequestCtx, next restgo.Next) {
+        restgo.ServeTEXT(ctx, "GET User", 200)
     }
     
     // Add it to root router
@@ -61,20 +61,20 @@ check example `exmaple/app.go`
 
 ```go
 	
-    router := grest.NewRouter()
-    router.Use("/", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+    router := restgo.NewRouter()
+    router.Use("/", func (ctx *fasthttp.RequestCtx, next restgo.Next) {
         fmt.Println("Filter all")
         next(nil)
     })
     
-    router.GET("/about", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+    router.GET("/about", func (ctx *fasthttp.RequestCtx, next restgo.Next) {
         fmt.Println("GET about")
-        grest.ServeTEXT(ctx, "GET about", 0)
+        restgo.ServeTEXT(ctx, "GET about", 0)
     })
 
-    router.All("/test", func (ctx *fasthttp.RequestCtx, next grest.Next) {
+    router.All("/test", func (ctx *fasthttp.RequestCtx, next restgo.Next) {
         fmt.Println("All test: " + string(ctx.Method()))
-        grest.ServeTEXT(ctx, "All test: " + string(ctx.Method()), 0)
+        restgo.ServeTEXT(ctx, "All test: " + string(ctx.Method()), 0)
     })
 
     var addr = flag.String("addr", ":8080", "TCP address to listen to")

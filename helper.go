@@ -1,4 +1,4 @@
-package grest
+package restgo
 
 import (
 	"net/http"
