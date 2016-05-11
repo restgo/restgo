@@ -33,6 +33,9 @@ Such as log middleware
 
 ```
 
+## Session
+Please check [restgo/session](https://github.com/restgo/session)
+
 
 
 ## Use with Controller
