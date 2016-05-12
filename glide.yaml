@@ -1,0 +1,5 @@
+package: github.com/restgo/restgo
+homepage: https://github.com/restgo/restgo
+import:
+- package: github.com/valyala/fasthttp
+- package: github.com/fasthttp-contrib/render
