@@ -12,8 +12,9 @@ func App() *Restgo{
 	}
 }
 
+// create a new router
 func (this *Restgo) Router() *Router{
-	return this.router
+	return NewRouter()
 }
 
 func (this *Restgo) Run(addr ...string) {
