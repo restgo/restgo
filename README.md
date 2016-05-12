@@ -26,7 +26,7 @@ It's easy to develop a middleware for it
 
 Such as log middleware
 ```go 
-app.Use("/", func (ctx *Context, next restgo.Next) {
+app.Use(func (ctx *Context, next restgo.Next) {
     fmt.Println("This is log middleware, I will log everything!")
     next(nil)
 })
@@ -66,7 +66,7 @@ check example `exmaple/app.go`
 app := restgo.App()
 
 // filter all request
-app.Use("/", func(ctx *Context, next restgo.Next) {
+app.Use(func(ctx *Context, next restgo.Next) {
     fmt.Println("Filter all")
     next(nil)
 })

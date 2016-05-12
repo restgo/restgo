@@ -38,8 +38,8 @@ func (this *Restgo) Run(addr ...string) {
 */
 
 // set handlers for `path`, default is `/`. you can use it as filters
-func (this *Restgo) Use(path string, handlers ...interface{}) *Router {
-	return this.router.Use(path, handlers...)
+func (this *Restgo) Use(handlers ...interface{}) *Router {
+	return this.router.Use(handlers...)
 }
 
 // create a sub-route

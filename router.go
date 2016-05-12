@@ -42,12 +42,22 @@ func NewRouter(renderConfig ...*render.Config) *Router {
 }
 
 // set handlers for `path`, default is `/`. you can use it as filters
-func (this *Router) Use(path string, handlers ...interface{}) *Router {
-	if path == "" {
-		path = "/" // default to root path
+// Use(handler)
+// User("/user", userHandler)
+func (this *Router) Use(handlers ...interface{}) *Router {
+	var path = "/" // default to root path
+
+	var index = 0
+	if len(handlers) > 1 {
+		if tmpPath, ok := handlers[0].(string); ok {
+			path = tmpPath
+			index = 1
+		}
 	}
 
-	for _, handler := range handlers {
+	for ; index <len(handlers) ;index++ {
+		handler := handlers[index]
+
 		var l *layer
 		switch handler.(type) {
 		case *Router:
@@ -71,6 +81,11 @@ func (this *Router) Use(path string, handlers ...interface{}) *Router {
 			if fnType.Kind() != reflect.Func || fnType.NumIn() != 2 || fnType.NumOut() != 0 {
 				panic("Expected a type restgo.HTTPHandler function")
 			}
+			// check handler func parameters type
+			if(fnType.In(0).Kind() != reflect.Ptr && fnType.In(1).Kind() != reflect.Func) {
+				panic("Expected a type restgo.HTTPHandler function, parameters error")
+			}
+
 			l = newLayer(path, func(ctx *Context, next Next) {
 				fn.Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(next)})
 			}, false)

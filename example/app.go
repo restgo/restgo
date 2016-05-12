@@ -22,7 +22,7 @@ func main() {
 	app := restgo.App()
 
 	// filter all request
-	app.Use("/", func(ctx *restgo.Context, next restgo.Next) {
+	app.Use(func(ctx *restgo.Context, next restgo.Next) {
 		fmt.Println("Filter all")
 		next(nil)
 	})
