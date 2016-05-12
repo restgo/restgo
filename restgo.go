@@ -17,6 +17,7 @@ func (this *Restgo) Router() *Router{
 	return NewRouter()
 }
 
+// run app on address `addr` or default `:8080`. only first addr will be used in the parameters.
 func (this *Restgo) Run(addr ...string) {
 	var address = ":8080" // default address
 
