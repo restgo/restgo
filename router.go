@@ -1,7 +1,6 @@
 package restgo
 
 import (
-	"fmt"
 	"github.com/fasthttp-contrib/render"
 	"github.com/valyala/fasthttp"
 	"net/http"
