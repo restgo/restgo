@@ -15,10 +15,19 @@ go get github.com/restgo/restgo
 ```
 /users
 /users/:id
-(/categories/:category_id)?/posts/:id
+/categories/:category_id/posts/:id
 ```
 
-URL Params will be encoded in querystring, you can get values from querystring easily.  
+URL Params will be encoded in querystring, you can get values from querystring or use ctx.ParamXXX methods to get it.
+
+for url: `/users/12345?limit=10&page=2&sort=`
+
+```
+ctx.ParamString("id", "")   // get "12345" 
+ctx.ParamInt("limit", 15)   // get 15
+ctx.ParamInt("page", 1)     // get 2
+ctx.ParamString("sort", "id")  // get "id", default value
+```
 
 ## Middleware
 
