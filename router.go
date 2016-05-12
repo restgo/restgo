@@ -1,17 +1,20 @@
 package restgo
 
 import (
+	"fmt"
+	"github.com/fasthttp-contrib/render"
 	"github.com/valyala/fasthttp"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
+	"sync"
 )
 
 type (
 	Next func(err error)
 
-	HTTPHandler func(ctx *fasthttp.RequestCtx, next Next)
+	HTTPHandler func(ctx *Context, next Next)
 
 	// controller implement this interface to init router for it
 	ControllerRouter interface {
@@ -21,13 +24,19 @@ type (
 	Router struct {
 		stack        []*layer
 		routerPrefix string // prefix path, trimmed off it when route
+		contextPool  sync.Pool
+		renderConfig []*render.Config
+		render       *render.Render
 	}
 )
 
 // Create one new Router
-func NewRouter() *Router {
+func NewRouter(renderConfig ...*render.Config) *Router {
 	router := &Router{
-		stack: make([]*layer, 0),
+		stack:        make([]*layer, 0),
+		contextPool:  contextPool(),
+		renderConfig: renderConfig,
+		render:       render.New(renderConfig...),
 	}
 
 	return router
@@ -53,7 +62,7 @@ func (this *Router) Use(path string, handlers ...interface{}) *Router {
 			}
 		case ControllerRouter:
 			if ctrl, ok := handler.(ControllerRouter); ok {
-				router := NewRouter()
+				router := NewRouter(this.renderConfig...)
 				ctrl.Route(router)
 				this.Use(path, router)
 			}
@@ -63,7 +72,7 @@ func (this *Router) Use(path string, handlers ...interface{}) *Router {
 			if fnType.Kind() != reflect.Func || fnType.NumIn() != 2 || fnType.NumOut() != 0 {
 				panic("Expected a type restgo.HTTPHandler function")
 			}
-			l = newLayer(path, func(ctx *fasthttp.RequestCtx, next Next) {
+			l = newLayer(path, func(ctx *Context, next Next) {
 				fn.Call([]reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(next)})
 			}, false)
 		}
@@ -158,7 +167,7 @@ func (this *Router) matchLayer(l *layer, path string) (url.Values, bool) {
 	return urlParams, match
 }
 
-func (this *Router) route(ctx *fasthttp.RequestCtx, done Next) {
+func (this *Router) route(ctx *Context, done Next) {
 	var next func(err error)
 	var idx = 0
 
@@ -210,13 +219,20 @@ func (this *Router) route(ctx *fasthttp.RequestCtx, done Next) {
 }
 
 // implement HTTPHandler interface, make it can be as a handler
-func (this *Router) HTTPHandler(ctx *fasthttp.RequestCtx, next Next) {
+func (this *Router) HTTPHandler(ctx *Context, next Next) {
 	this.route(ctx, next)
 }
 
 // implement fasthttp.RequestHandler function
 func (this *Router) FastHttpHandler(ctx *fasthttp.RequestCtx) {
-	this.route(ctx, func(err error) {
+	context := this.contextPool.Get().(*Context)
+	defer func() {
+		this.contextPool.Put(context)
+	}()
+
+	context.RequestCtx = ctx
+	context.Render = this.render
+	this.route(context, func(err error) {
 		if err != nil {
 			ctx.Error("Something wrong", http.StatusInternalServerError)
 			return

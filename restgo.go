@@ -1,20 +1,25 @@
 package restgo
 
-import "github.com/valyala/fasthttp"
+import (
+	"github.com/fasthttp-contrib/render"
+	"github.com/valyala/fasthttp"
+)
 
 type Restgo struct {
 	router *Router // root router for restgo
 }
 
-func App() *Restgo{
+// create app instance, give render config or use default(pass nothing)
+// lean how to config render here : https://github.com/unrolled/render
+func App(renderConfig ...*render.Config) *Restgo {
 	return &Restgo{
-		router:NewRouter(),
+		router: NewRouter(renderConfig...),
 	}
 }
 
 // create a new router
-func (this *Restgo) Router() *Router{
-	return NewRouter()
+func (this *Restgo) Router(renderConfig ...*render.Config) *Router {
+	return NewRouter(renderConfig...)
 }
 
 // run app on address `addr` or default `:8080`. only first addr will be used in the parameters.
@@ -27,7 +32,6 @@ func (this *Restgo) Run(addr ...string) {
 	err := fasthttp.ListenAndServe(address, this.router.FastHttpHandler)
 	panic(err)
 }
-
 
 /*
  Shorthands methods

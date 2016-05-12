@@ -1,7 +1,6 @@
 package restgo
 
 import (
-	"github.com/valyala/fasthttp"
 	"strings"
 )
 
@@ -31,7 +30,7 @@ func (this *Route) handlesMethod(method string) bool {
 	return bool(this.methods[name])
 }
 
-func (this *Route) dispatch(ctx *fasthttp.RequestCtx, done Next) {
+func (this *Route) dispatch(ctx *Context, done Next) {
 	var idx = 0
 	if len(this.stack) == 0 {
 		done(nil)
@@ -69,7 +68,7 @@ func (this *Route) dispatch(ctx *fasthttp.RequestCtx, done Next) {
 }
 
 // implement HTTPHandle interface, so you can use it as a handler
-func (this *Route) HTTPHandler(ctx *fasthttp.RequestCtx, done Next) {
+func (this *Route) HTTPHandler(ctx *Context, done Next) {
 	this.dispatch(ctx, done)
 }
 

@@ -1,7 +1,6 @@
 package restgo
 
 import (
-	"github.com/valyala/fasthttp"
 	"net/url"
 	"regexp"
 	"strings"
@@ -29,7 +28,7 @@ func newLayer(path string, handle HTTPHandler, end bool) *layer {
 	return l
 }
 
-func (this *layer) handleRequest(ctx *fasthttp.RequestCtx, next Next) {
+func (this *layer) handleRequest(ctx *Context, next Next) {
 	if this.handle != nil {
 		this.handle(ctx, next)
 	} else {
@@ -68,7 +67,7 @@ func (this *layer) match(path string) (url.Values, bool) {
 
 // append url params to query string, you can get it by calling ctx.URI().QueryString()
 // params := ctx.URI().QueryString()
-func (this *layer) registerParamsAsQuery(ctx *fasthttp.RequestCtx, urlParams url.Values) {
+func (this *layer) registerParamsAsQuery(ctx *Context, urlParams url.Values) {
 	query := string(ctx.URI().QueryString())
 
 	for k, v := range urlParams {

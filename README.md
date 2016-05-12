@@ -26,7 +26,7 @@ It's easy to develop a middleware for it
 
 Such as log middleware
 ```go 
-router.Use("/", func (ctx *fasthttp.RequestCtx, next restgo.Next) {
+app.Use("/", func (ctx *Context, next restgo.Next) {
     fmt.Println("This is log middleware, I will log everything!")
     next(nil)
 })
@@ -48,12 +48,12 @@ func (this *UserController)Route(router *restgo.Router) {
     router.GET("/", this.Get) // GET /users/
 }
 
-func (this *UserController) Get(ctx *fasthttp.RequestCtx, next restgo.Next) {
-    restgo.ServeTEXT(ctx, "GET User", 200)
+func (this *UserController) Get(ctx *Context, next restgo.Next) {
+    ctx.ServeText(200, "GET User")
 }
 
-// Add it to root router
-rootRouter.Use("/users", &UserController{});
+// Add it to router
+app.Use("/users", &UserController{});
 
 //now, you can access it `GET /users/`, SIMPLE!!! 
 ```
@@ -66,7 +66,7 @@ check example `exmaple/app.go`
 app := restgo.App()
 
 // filter all request
-app.Use("/", func(ctx *fasthttp.RequestCtx, next restgo.Next) {
+app.Use("/", func(ctx *Context, next restgo.Next) {
     fmt.Println("Filter all")
     next(nil)
 })
@@ -75,15 +75,15 @@ app.Use("/", func(ctx *fasthttp.RequestCtx, next restgo.Next) {
 app.Use("/users", &UserController{})
 
 // all /test requests(GET, DELETE, PUT...) go into this handler
-app.All("/test", func(ctx *fasthttp.RequestCtx, next restgo.Next) {
+app.All("/test", func(ctx *Context, next restgo.Next) {
     fmt.Println("All test: " + string(ctx.Method()))
-    restgo.ServeTEXT(ctx, "All test: "+string(ctx.Method()), 0)
+    ctx.ServeText(200, "All test: "+string(ctx.Method()))
 })
 
 // set /about path handler
-app.GET("/about", func(ctx *fasthttp.RequestCtx, next restgo.Next) {
+app.GET("/about", func(ctx *Context, next restgo.Next) {
     fmt.Println("GET about")
-    restgo.ServeTEXT(ctx, "GET about", 0)
+    ctx.ServeText(200, "GET about")
 })
 
 // default :8080, you can specify it too. app.Run(":8080")
