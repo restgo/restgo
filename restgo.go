@@ -7,14 +7,21 @@ import (
 
 type Restgo struct {
 	router *Router // root router for restgo
+	server *fasthttp.Server
 }
 
 // create app instance, give render config or use default(pass nothing)
 // lean how to config render here : https://github.com/unrolled/render
 func App(renderConfig ...*render.Config) *Restgo {
-	return &Restgo{
+	app := &Restgo{
 		router: NewRouter(renderConfig...),
+		server: &fasthttp.Server{
+			Name: "Restgo",
+		},
 	}
+	app.server.Handler = app.router.FastHttpHandler
+
+	return app
 }
 
 // create a new router
@@ -29,7 +36,8 @@ func (this *Restgo) Run(addr ...string) {
 	if len(addr) > 0 {
 		address = addr[0]
 	}
-	err := fasthttp.ListenAndServe(address, this.router.FastHttpHandler)
+
+	err := this.server.ListenAndServe(address)
 	panic(err)
 }
 
