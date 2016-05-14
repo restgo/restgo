@@ -10,6 +10,11 @@ func Test_path2reg(t *testing.T) {
 
 	tests := [][]interface{}{
 		{
+			``,
+			`\A\z`,
+			true,
+		},
+		{
 			`/`,
 			`\A/\z`,
 			true,

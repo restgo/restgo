@@ -45,7 +45,7 @@ func NewRouter(renderConfig ...*render.Config) *Router {
 // Use(handler)
 // User("/user", userHandler)
 func (this *Router) Use(handlers ...interface{}) *Router {
-	var path = "/" // default to root path
+	var path = "" // default to root path
 
 	var index = 0
 	if len(handlers) > 1 {

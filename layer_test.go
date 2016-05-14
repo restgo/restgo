@@ -10,6 +10,17 @@ func Test_match(t *testing.T) {
 
 	tests := [][]interface{}{
 		{
+			``,
+			false,
+			true,
+			[][]interface{}{
+				{``, true},
+				{`/`, true},
+				{`/user`, true},
+				{`/company`, true},
+			},
+		},
+		{
 			`/`,  // router path
 			true, // is end
 			true, // static
