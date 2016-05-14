@@ -66,6 +66,10 @@ func (this *Context) ServeHTML(status int, name string, binding interface{}, lay
 	return this.HTML(this.RequestCtx, status, name, binding, layout...)
 }
 
-func (this *Context) ServerData(status int, v []byte) error {
+func (this *Context) ServeData(status int, v []byte) error {
 	return this.Data(this.RequestCtx, status, v)
+}
+
+func (this *Context) ServeError(status int, err error) error{
+	return this.Text(this.RequestCtx, status, err.Error())
 }
