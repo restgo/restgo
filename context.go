@@ -11,6 +11,8 @@ type Context struct {
 	*render.Render
 }
 
+type JSON map[string]interface{}
+
 func contextPool() sync.Pool {
 	return sync.Pool{
 		New: func() interface{} {
