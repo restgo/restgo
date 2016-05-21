@@ -23,6 +23,7 @@ type (
 
 	Router struct {
 		stack        []*layer
+		routerPrefix string
 		routerPrefixRegexp *regexp.Regexp // prefix path, trimmed off it when route
 		staticPrefixPath bool
 		contextPool  sync.Pool
@@ -66,8 +67,8 @@ func (this *Router) Use(handlers ...interface{}) *Router {
 		switch handler.(type) {
 		case *Router:
 			if router, ok := handler.(*Router); ok {
-				// prepare router prefix path
-				router.routerPrefixRegexp, router.staticPrefixPath = path2Regexp(this.routerPrefixRegexp.String() + path, false)
+				router.routerPrefix = this.routerPrefix + path// prepare router prefix path
+				router.routerPrefixRegexp, router.staticPrefixPath = path2Regexp(router.routerPrefix, false)
 				l = newLayer(path, router.HTTPHandler, false)
 			}
 		case *Route:
@@ -198,7 +199,7 @@ func (this *Router) route(ctx *Context, done Next) {
 		// get trimmed path for current router
 		path := string(ctx.Path())
 		if this.staticPrefixPath {
-			path = strings.TrimPrefix(path, this.routerPrefixRegexp.String())
+			path = strings.TrimPrefix(path, this.routerPrefix)
 		} else if loc := this.routerPrefixRegexp.FindStringIndex(path); (loc != nil && loc[0] == 0) {
 			path = path[loc[1]:]
 		}
