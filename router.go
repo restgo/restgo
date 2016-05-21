@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"regexp"
 )
 
 type (
@@ -22,7 +23,8 @@ type (
 
 	Router struct {
 		stack        []*layer
-		routerPrefix string // prefix path, trimmed off it when route
+		routerPrefixRegexp *regexp.Regexp // prefix path, trimmed off it when route
+		staticPrefixPath bool
 		contextPool  sync.Pool
 		renderConfig []*render.Config
 		render       *render.Render
@@ -33,6 +35,8 @@ type (
 func NewRouter(renderConfig ...*render.Config) *Router {
 	router := &Router{
 		stack:        make([]*layer, 0),
+		routerPrefixRegexp: regexp.MustCompile(""),
+		staticPrefixPath: true,
 		contextPool:  contextPool(),
 		renderConfig: renderConfig,
 		render:       render.New(renderConfig...),
@@ -62,7 +66,8 @@ func (this *Router) Use(handlers ...interface{}) *Router {
 		switch handler.(type) {
 		case *Router:
 			if router, ok := handler.(*Router); ok {
-				router.routerPrefix = this.routerPrefix + path // prepare router prefix path
+				// prepare router prefix path
+				router.routerPrefixRegexp, router.staticPrefixPath = path2Regexp(this.routerPrefixRegexp.String() + path, false)
 				l = newLayer(path, router.HTTPHandler, false)
 			}
 		case *Route:
@@ -191,7 +196,12 @@ func (this *Router) route(ctx *Context, done Next) {
 			return
 		}
 		// get trimmed path for current router
-		path := strings.TrimPrefix(string(ctx.Path()), this.routerPrefix)
+		path := string(ctx.Path())
+		if this.staticPrefixPath {
+			path = strings.TrimPrefix(path, this.routerPrefixRegexp.String())
+		} else if loc := this.routerPrefixRegexp.FindStringIndex(path); (loc != nil && loc[0] == 0) {
+			path = path[loc[1]:]
+		}
 		if path == "" {
 			done(err)
 			return

@@ -42,6 +42,22 @@ func main() {
 		ctx.ServeText(200, "GET about")
 	})
 
+	blog := app.Router()
+	blog.GET("/", func(ctx *restgo.Context, next restgo.Next) {
+		fmt.Println("GET blog")
+		ctx.ServeText(200, "GET blog")
+	})
+	blog.GET("/:id", func(ctx *restgo.Context, next restgo.Next) {
+		fmt.Println("GET blog: " +ctx.ParamString("id", ""))
+		ctx.ServeText(200, "GET blog: " +ctx.ParamString("id", ""))
+	})
+	blog.GET("/:id/delete", func(ctx *restgo.Context, next restgo.Next) {
+		fmt.Println("GET blog: " + ctx.ParamString("id", ""))
+		ctx.ServeText(200, "GET blog delete: "  +ctx.ParamString("id", ""))
+	})
+
+	app.Use("/:blog", blog)
+
 	// default :8080, you can specify it too. app.Run(":8080")
-	app.Run()
+	app.Run(":9090")
 }
